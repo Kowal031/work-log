@@ -1,94 +1,108 @@
-# 10x Astro Starter
+# WorkLog
 
-A modern, opinionated starter template for building fast, accessible, and AI-friendly web applications.
+A simple and effective application for monitoring time spent on various tasks.
+
+## Table of Contents
+
+- [Project Description](#project-description)
+- [Tech Stack](#tech-stack)
+- [Getting Started Locally](#getting-started-locally)
+- [Available Scripts](#available-scripts)
+- [Project Scope](#project-scope)
+- [Project Status](#project-status)
+- [License](#license)
+
+## Project Description
+
+WorkLog is designed to provide users with a straightforward tool for tracking work time. The application allows for recording time spent on individual tasks through start and pause functionalities. Users can create and manage tasks, as well as review daily summaries of their activity. This helps solve the problem of inaccurate manual time logging, especially for remote or computer-based work, by offering a centralized and convenient solution.
 
 ## Tech Stack
 
-- [Astro](https://astro.build/) v5.5.5 - Modern web framework for building fast, content-focused websites
-- [React](https://react.dev/) v19.0.0 - UI library for building interactive components
-- [TypeScript](https://www.typescriptlang.org/) v5 - Type-safe JavaScript
-- [Tailwind CSS](https://tailwindcss.com/) v4.0.17 - Utility-first CSS framework
+### Frontend
+- **Astro 5**: For building fast, content-focused websites.
+- **React 19**: For creating interactive UI components.
+- **TypeScript 5**: For strong typing and improved code quality.
+- **Tailwind CSS 4**: A utility-first CSS framework for rapid UI development.
+- **Shadcn/ui**: A collection of reusable UI components.
 
-## Prerequisites
+### Backend
+- **Supabase**: An open-source Firebase alternative for database, authentication, and backend services.
 
-- Node.js v22.14.0 (as specified in `.nvmrc`)
-- npm (comes with Node.js)
+### AI Integration
+- **Openrouter.ai**: A middleware layer for accessing various large language models.
 
-## Getting Started
+### CI/CD & Hosting
+- **GitHub Actions**: For automating build, test, and deployment pipelines.
+- **DigitalOcean (Docker)**: For scalable and straightforward application hosting.
 
-1. Clone the repository:
+## Getting Started Locally
 
-```bash
-git clone https://github.com/przeprogramowani/10x-astro-starter.git
-cd 10x-astro-starter
-```
+To get a local copy up and running, follow these simple steps.
 
-2. Install dependencies:
+### Prerequisites
 
-```bash
-npm install
-```
+- **Node.js**: Version `22.14.0`. We recommend using a version manager like `nvm`.
+  ```sh
+  nvm use
+  ```
+- **npm** (or your preferred package manager)
+  ```sh
+  npm install -g npm@latest
+  ```
 
-3. Run the development server:
+### Installation
 
-```bash
-npm run dev
-```
+1. Clone the repo
+   ```sh
+   git clone https://github.com/your_username/work-log.git
+   ```
+2. Navigate to the project directory
+   ```sh
+   cd work-log
+   ```
+3. Install NPM packages
+   ```sh
+   npm install
+   ```
+4. Create a `.env` file in the root directory and add your environment variables (e.g., for Supabase).
 
-4. Build for production:
-
-```bash
-npm run build
-```
+5. Run the development server
+   ```sh
+   npm run dev
+   ```
 
 ## Available Scripts
 
-- `npm run dev` - Start development server
-- `npm run build` - Build for production
-- `npm run preview` - Preview production build
-- `npm run lint` - Run ESLint
-- `npm run lint:fix` - Fix ESLint issues
+In the project directory, you can run the following scripts:
 
-## Project Structure
+- `npm run dev`: Runs the app in the development mode.
+- `npm run build`: Builds the app for production to the `dist/` folder.
+- `npm run preview`: Serves the production build locally for preview.
+- `npm run lint`: Lints the codebase using ESLint.
+- `npm run lint:fix`: Fixes linting errors automatically.
+- `npm run format`: Formats the code using Prettier.
 
-```md
-.
-├── src/
-│   ├── layouts/    # Astro layouts
-│   ├── pages/      # Astro pages
-│   │   └── api/    # API endpoints
-│   ├── components/ # UI components (Astro & React)
-│   └── assets/     # Static assets
-├── public/         # Public assets
-```
+## Project Scope
 
-## AI Development Support
+### Included Features (MVP)
+- **User Authentication**: Secure registration and login.
+- **Task Management**: Create, edit, and archive tasks.
+- **Time Tracking**: Start, pause, and stop a timer for each task.
+- **Manual Time Entry**: Manually add or edit time entries.
+- **Daily Summary**: View a summary of time spent per day.
+- **History**: Browse through past work logs using a calendar view.
 
-This project is configured with AI development tools to enhance the development experience, providing guidelines for:
+### Out of Scope (Future Enhancements)
+- Advanced productivity analytics and charts.
+- Data export to CSV or PDF.
+- Integrations with third-party project management tools (Jira, Trello, etc.).
+- Invoicing and billing features.
+- Automatic idle time detection.
 
-- Project structure
-- Coding practices
-- Frontend development
-- Styling with Tailwind
-- Accessibility best practices
-- Astro and React guidelines
+## Project Status
 
-### Cursor IDE
-
-The project includes AI rules in `.cursor/rules/` directory that help Cursor IDE understand the project structure and provide better code suggestions.
-
-### GitHub Copilot
-
-AI instructions for GitHub Copilot are available in `.github/copilot-instructions.md`
-
-### Windsurf
-
-The `.windsurfrules` file contains AI configuration for Windsurf.
-
-## Contributing
-
-Please follow the AI guidelines and coding practices defined in the AI configuration files when contributing to this project.
+This project is currently **in development**. The core features for the Minimum Viable Product (MVP) are being implemented.
 
 ## License
 
-MIT
+This project is licensed under the MIT License.
