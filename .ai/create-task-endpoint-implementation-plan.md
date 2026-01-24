@@ -289,21 +289,6 @@ At any stage, if an error occurs:
 - Endpoint wymaga zalogowanego użytkownika
 - Zwrócenie 401 Unauthorized jeśli sesja nie istnieje lub wygasła
 
-**Kod:**
-```typescript
-const { data: { user }, error: authError } = await Astro.locals.supabase.auth.getUser();
-
-if (authError || !user) {
-  return new Response(
-    JSON.stringify({
-      error: "Unauthorized",
-      message: "Authentication required to create tasks"
-    }),
-    { status: 401, headers: { "Content-Type": "application/json" } }
-  );
-}
-```
-
 ### 2. Autoryzacja (Authorization)
 
 **RLS Policies w Supabase:**
@@ -320,19 +305,6 @@ if (authError || !user) {
   - `name`: max 255 znaków (zgodnie z kolumną VARCHAR(255) w bazie)
   - `description`: max 5000 znaków (zgodnie z kolumną VARCHAR(5000) w bazie)
 - Wymóg niepustej nazwy (min 1 znak po trim)
-
-**Schemat Zod:**
-```typescript
-const createTaskSchema = z.object({
-  name: z.string()
-    .trim()
-    .min(1, "Name is required and cannot be empty")
-    .max(255, "Name cannot exceed 255 characters"),
-  description: z.string()
-    .max(5000, "Description cannot exceed 5000 characters")
-    .optional()
-});
-```
 
 ### 4. Ochrona przed CSRF
 
@@ -376,49 +348,12 @@ const createTaskSchema = z.object({
 - Pole `description` przekracza 5000 znaków
 - Nieprawidłowy format JSON
 
-**Obsługa:**
-```typescript
-try {
-  const validatedData = createTaskSchema.parse(requestBody);
-} catch (error) {
-  if (error instanceof z.ZodError) {
-    return new Response(
-      JSON.stringify({
-        error: "ValidationError",
-        message: "Request validation failed",
-        details: error.errors.map(err => ({
-          field: err.path.join('.'),
-          message: err.message
-        }))
-      } as ValidationErrorDto),
-      { status: 400, headers: { "Content-Type": "application/json" } }
-    );
-  }
-}
-```
-
 ### 2. Błędy autoryzacji (401 Unauthorized)
 
 **Scenariusze:**
 - Brak tokenu autoryzacyjnego (brak sesji)
 - Nieważny token (wygasła sesja)
 - Token nie jest powiązany z żadnym użytkownikiem
-
-**Obsługa:**
-```typescript
-const { data: { user }, error: authError } = await Astro.locals.supabase.auth.getUser();
-
-if (authError || !user) {
-  console.error('Authentication error:', authError);
-  return new Response(
-    JSON.stringify({
-      error: "Unauthorized",
-      message: "Authentication required to create tasks"
-    } as ErrorResponseDto),
-    { status: 401, headers: { "Content-Type": "application/json" } }
-  );
-}
-```
 
 ### 3. Błędy bazy danych (500 Internal Server Error)
 
@@ -428,84 +363,16 @@ if (authError || !user) {
 - Błąd RLS policy (rzadkie, ale możliwe)
 - Timeout zapytania
 
-**Obsługa:**
-```typescript
-try {
-  const result = await taskService.createTask(command);
-  // ... success handling
-} catch (error) {
-  console.error('Error creating task:', error);
-  
-  // Sprawdzenie czy to błąd Supabase
-  if (error && typeof error === 'object' && 'code' in error) {
-    // Specyficzne błędy Supabase
-    const supabaseError = error as { code: string; message: string };
-    
-    return new Response(
-      JSON.stringify({
-        error: "DatabaseError",
-        message: "Failed to create task due to database error"
-      } as ErrorResponseDto),
-      { status: 500, headers: { "Content-Type": "application/json" } }
-    );
-  }
-  
-  // Ogólny błąd serwera
-  return new Response(
-    JSON.stringify({
-      error: "InternalServerError",
-      message: "An unexpected error occurred while creating the task"
-    } as ErrorResponseDto),
-    { status: 500, headers: { "Content-Type": "application/json" } }
-  );
-}
-```
-
 ### 4. Błędy parsowania JSON (400 Bad Request)
 
 **Scenariusze:**
 - Nieprawidłowy format JSON w request body
 - Brak Content-Type: application/json
 
-**Obsługa:**
-```typescript
-let requestBody: unknown;
-try {
-  requestBody = await Astro.request.json();
-} catch (error) {
-  return new Response(
-    JSON.stringify({
-      error: "BadRequest",
-      message: "Invalid JSON in request body"
-    } as ErrorResponseDto),
-    { status: 400, headers: { "Content-Type": "application/json" } }
-  );
-}
-```
-
 ### 5. Błędy HTTP Method (405 Method Not Allowed)
 
 **Scenariusze:**
 - Użycie innej metody niż POST (GET, PUT, DELETE, PATCH)
-
-**Obsługa:**
-```typescript
-if (Astro.request.method !== 'POST') {
-  return new Response(
-    JSON.stringify({
-      error: "MethodNotAllowed",
-      message: "Only POST method is allowed for this endpoint"
-    } as ErrorResponseDto),
-    { 
-      status: 405, 
-      headers: { 
-        "Content-Type": "application/json",
-        "Allow": "POST"
-      } 
-    }
-  );
-}
-```
 
 ## 8. Rozważania dotyczące wydajności
 
