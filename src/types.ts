@@ -152,7 +152,10 @@ export type ActiveTimerResponseDto = {
 export interface TaskSummaryDto {
   task_id: string;
   task_name: string;
-  total_duration: string;
+  task_status: TaskStatus;
+  duration_seconds: number;
+  duration_formatted: string;
+  entries_count: number;
 }
 
 /**
@@ -160,8 +163,10 @@ export interface TaskSummaryDto {
  * GET /api/summary/daily
  */
 export interface DailySummaryResponseDto {
-  date: string;
-  total_duration: string;
+  date_from: string;
+  date_to: string;
+  total_duration_seconds: number;
+  total_duration_formatted: string;
   tasks: TaskSummaryDto[];
 }
 
