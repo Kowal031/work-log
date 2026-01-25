@@ -10,6 +10,16 @@ export const createTaskSchema = z.object({
 });
 
 /**
+ * Validation schema for listing tasks query parameters
+ * GET /api/tasks
+ */
+export const listTasksQuerySchema = z.object({
+  status: z.enum(["active", "completed"]).optional(),
+  sortBy: z.enum(["created_at", "name"]).optional(),
+  order: z.enum(["asc", "desc"]).optional(),
+});
+
+/**
  * Validation schema for updating an existing task
  * PATCH /api/tasks/{taskId}
  */

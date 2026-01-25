@@ -1,5 +1,5 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
-import type { CreateTaskCommand, TaskResponseDto, UpdateTaskCommand } from "../../types";
+import type { CreateTaskCommand, TaskResponseDto, UpdateTaskCommand, ListTasksQueryDto } from "../../types";
 
 /**
  * Create a new task for a user
@@ -65,18 +65,31 @@ export async function updateTask(supabase: SupabaseClient, command: UpdateTaskCo
 }
 
 /**
- * Get all tasks for a user
+ * Get all tasks for a user with optional filtering and sorting
  * @param supabase - Authenticated Supabase client
  * @param userId - User ID to fetch tasks for
+ * @param filters - Optional filters and sorting options
  * @returns Array of TaskResponseDto
  * @throws Error if fetching tasks fails
  */
-export async function getTasks(supabase: SupabaseClient, userId: string): Promise<TaskResponseDto[]> {
-  const { data, error } = await supabase
-    .from("tasks")
-    .select("id, name, description, status, created_at")
-    .eq("user_id", userId)
-    .order("created_at", { ascending: false });
+export async function getTasks(
+  supabase: SupabaseClient,
+  userId: string,
+  filters?: ListTasksQueryDto
+): Promise<TaskResponseDto[]> {
+  let query = supabase.from("tasks").select("id, name, description, status, created_at").eq("user_id", userId);
+
+  // Apply status filter if provided
+  if (filters?.status) {
+    query = query.eq("status", filters.status);
+  }
+
+  // Apply sorting
+  const sortBy = filters?.sortBy || "created_at";
+  const ascending = filters?.order === "asc";
+  query = query.order(sortBy, { ascending });
+
+  const { data, error } = await query;
 
   if (error) {
     throw new Error(`Failed to fetch tasks: ${error.message}`);
@@ -84,5 +97,3 @@ export async function getTasks(supabase: SupabaseClient, userId: string): Promis
 
   return data || [];
 }
-
-

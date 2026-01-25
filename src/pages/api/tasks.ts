@@ -1,10 +1,97 @@
 import type { APIRoute } from "astro";
 import { z } from "zod";
-import { createTaskSchema } from "../../lib/validation/task.validation";
-import { createTask } from "../../lib/services/task.service";
+import { createTaskSchema, listTasksQuerySchema } from "../../lib/validation/task.validation";
+import { createTask, getTasks } from "../../lib/services/task.service";
 import type { CreateTaskCommand, TaskResponseDto, ErrorResponseDto, ValidationErrorDto } from "../../types";
 
 export const prerender = false;
+
+/**
+ * GET /api/tasks
+ * Retrieve all tasks for the authenticated user with optional filtering and sorting
+ */
+export const GET: APIRoute = async ({ request, locals }) => {
+  // Step 1: Check authentication
+  const {
+    data: { user },
+    error: authError,
+  } = await locals.supabase.auth.getUser();
+
+  if (authError || !user) {
+    console.error("Authentication error:", authError);
+    const errorResponse: ErrorResponseDto = {
+      error: "Unauthorized",
+      message: "Authentication required to retrieve tasks",
+    };
+    return new Response(JSON.stringify(errorResponse), {
+      status: 401,
+      headers: { "Content-Type": "application/json" },
+    });
+  }
+
+  // Step 2: Parse and validate query parameters
+  const url = new URL(request.url);
+  const queryParams = {
+    status: url.searchParams.get("status") || undefined,
+    sortBy: url.searchParams.get("sortBy") || undefined,
+    order: url.searchParams.get("order") || undefined,
+  };
+
+  let validatedQuery;
+  try {
+    validatedQuery = listTasksQuerySchema.parse(queryParams);
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      console.error("Query validation error:", error.errors);
+      const validationError: ValidationErrorDto = {
+        error: "ValidationError",
+        message: "Invalid query parameters",
+        details: error.errors.map((err) => ({
+          field: err.path.join("."),
+          message: err.message,
+        })),
+      };
+      return new Response(JSON.stringify(validationError), {
+        status: 400,
+        headers: { "Content-Type": "application/json" },
+      });
+    }
+
+    // Unexpected validation error
+    console.error("Unexpected validation error:", error);
+    const errorResponse: ErrorResponseDto = {
+      error: "InternalServerError",
+      message: "An unexpected error occurred during validation",
+    };
+    return new Response(JSON.stringify(errorResponse), {
+      status: 500,
+      headers: { "Content-Type": "application/json" },
+    });
+  }
+
+  // Step 3: Call service layer
+  try {
+    const tasks: TaskResponseDto[] = await getTasks(locals.supabase, user.id, validatedQuery);
+
+    // Step 4: Return success response
+    return new Response(JSON.stringify(tasks), {
+      status: 200,
+      headers: { "Content-Type": "application/json" },
+    });
+  } catch (error) {
+    console.error("Error retrieving tasks:", error);
+
+    // Generic server error
+    const errorResponse: ErrorResponseDto = {
+      error: "InternalServerError",
+      message: "An unexpected error occurred while retrieving tasks",
+    };
+    return new Response(JSON.stringify(errorResponse), {
+      status: 500,
+      headers: { "Content-Type": "application/json" },
+    });
+  }
+};
 
 /**
  * POST /api/tasks
