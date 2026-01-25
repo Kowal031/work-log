@@ -97,3 +97,25 @@ export async function getTasks(
 
   return data || [];
 }
+
+/**
+ * Check if a task exists and belongs to a user
+ * @param supabase - Authenticated Supabase client
+ * @param taskId - Task ID to check
+ * @param userId - User ID for ownership verification
+ * @returns true if task exists and belongs to user, false otherwise
+ * @throws Error if query fails
+ */
+export async function taskExists(supabase: SupabaseClient, taskId: string, userId: string): Promise<boolean> {
+  const { data, error } = await supabase.from("tasks").select("id").eq("id", taskId).eq("user_id", userId).single();
+
+  if (error) {
+    // PGRST116 means no rows returned, which is fine (task not found)
+    if (error.code === "PGRST116") {
+      return false;
+    }
+    throw new Error(`Failed to check task existence: ${error.message}`);
+  }
+
+  return data !== null;
+}
