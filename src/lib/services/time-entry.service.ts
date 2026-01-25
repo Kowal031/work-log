@@ -1,5 +1,5 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
-import type { StartTimeEntryCommand, TimeEntryResponseDto } from "../../types";
+import type { StartTimeEntryCommand, StopTimeEntryCommand, TimeEntryResponseDto } from "../../types";
 
 /**
  * Check if a task has an active timer (time entry without end_time)
@@ -84,6 +84,57 @@ export async function startTimeEntry(
 
   if (!data) {
     throw new Error("No data returned from time entry creation");
+  }
+
+  return data;
+}
+
+/**
+ * Stop an active time entry
+ * @param supabase - Authenticated Supabase client
+ * @param command - Stop time entry command with user_id, time_entry_id, and end_time
+ * @returns TimeEntryResponseDto with the updated time entry data
+ * @throws Error if time entry doesn't exist, already stopped, or update fails
+ */
+export async function stopTimeEntry(
+  supabase: SupabaseClient,
+  command: StopTimeEntryCommand
+): Promise<TimeEntryResponseDto> {
+  // Try to update the time entry - only if it's active (end_time IS NULL)
+  const { data, error } = await supabase
+    .from("time_entries")
+    .update({ end_time: command.end_time })
+    .eq("id", command.time_entry_id)
+    .eq("user_id", command.user_id)
+    .is("end_time", null)
+    .select("id, task_id, start_time, end_time")
+    .single();
+
+  if (error) {
+    // PGRST116 means no rows were updated
+    if (error.code === "PGRST116") {
+      // Check if entry exists to differentiate between 404 and 409
+      const { data: existingEntry } = await supabase
+        .from("time_entries")
+        .select("id, end_time")
+        .eq("id", command.time_entry_id)
+        .eq("user_id", command.user_id)
+        .single();
+
+      if (!existingEntry) {
+        throw new Error("TIME_ENTRY_NOT_FOUND");
+      }
+
+      if (existingEntry.end_time !== null) {
+        throw new Error("TIME_ENTRY_ALREADY_STOPPED");
+      }
+    }
+
+    throw new Error(`Failed to stop time entry: ${error.message}`);
+  }
+
+  if (!data) {
+    throw new Error("No data returned from time entry update");
   }
 
   return data;
