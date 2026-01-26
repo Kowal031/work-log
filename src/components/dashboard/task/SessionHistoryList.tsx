@@ -1,6 +1,7 @@
 import { Button } from "@/components/ui/button";
 import type { TimeEntryResponseDto } from "@/types";
 import { Pencil } from "lucide-react";
+import { memo, useMemo } from "react";
 
 interface SessionHistoryListProps {
   sessions: TimeEntryResponseDto[];
@@ -8,7 +9,57 @@ interface SessionHistoryListProps {
   highlightedSessionId?: string | null;
 }
 
-export function SessionHistoryList({ sessions, onEditSession, highlightedSessionId }: SessionHistoryListProps) {
+export const SessionHistoryList = memo(function SessionHistoryList({
+  sessions,
+  onEditSession,
+  highlightedSessionId,
+}: SessionHistoryListProps) {
+  const formatTime = useMemo(
+    () => (dateString: string) => {
+      const date = new Date(dateString);
+      return date.toLocaleTimeString("pl-PL", {
+        hour: "2-digit",
+        minute: "2-digit",
+      });
+    },
+    []
+  );
+
+  const formatDate = useMemo(
+    () => (dateString: string) => {
+      const date = new Date(dateString);
+      return date.toLocaleDateString("pl-PL", {
+        year: "numeric",
+        month: "2-digit",
+        day: "2-digit",
+      });
+    },
+    []
+  );
+
+  const calculateDuration = useMemo(
+    () => (startTime: string, endTime: string | null) => {
+      if (!endTime) return "w trakcie";
+
+      const start = new Date(startTime).getTime();
+      const end = new Date(endTime).getTime();
+      const durationSeconds = Math.floor((end - start) / 1000);
+
+      const hours = Math.floor(durationSeconds / 3600);
+      const minutes = Math.floor((durationSeconds % 3600) / 60);
+      const seconds = durationSeconds % 60;
+
+      if (hours > 0) {
+        return `${hours}h ${minutes}m`;
+      }
+      if (minutes > 0) {
+        return `${minutes}m`;
+      }
+      return `${seconds}s`;
+    },
+    []
+  );
+
   if (sessions.length === 0) {
     return (
       <div className="text-center py-6 text-muted-foreground">
@@ -16,43 +67,6 @@ export function SessionHistoryList({ sessions, onEditSession, highlightedSession
       </div>
     );
   }
-
-  const formatTime = (dateString: string) => {
-    const date = new Date(dateString);
-    return date.toLocaleTimeString("pl-PL", {
-      hour: "2-digit",
-      minute: "2-digit",
-    });
-  };
-
-  const formatDate = (dateString: string) => {
-    const date = new Date(dateString);
-    return date.toLocaleDateString("pl-PL", {
-      year: "numeric",
-      month: "2-digit",
-      day: "2-digit",
-    });
-  };
-
-  const calculateDuration = (startTime: string, endTime: string | null) => {
-    if (!endTime) return "w trakcie";
-
-    const start = new Date(startTime).getTime();
-    const end = new Date(endTime).getTime();
-    const durationSeconds = Math.floor((end - start) / 1000);
-
-    const hours = Math.floor(durationSeconds / 3600);
-    const minutes = Math.floor((durationSeconds % 3600) / 60);
-    const seconds = durationSeconds % 60;
-
-    if (hours > 0) {
-      return `${hours}h ${minutes}m`;
-    }
-    if (minutes > 0) {
-      return `${minutes}m`;
-    }
-    return `${seconds}s`;
-  };
 
   return (
     <div className="space-y-2">
@@ -95,4 +109,4 @@ export function SessionHistoryList({ sessions, onEditSession, highlightedSession
       })}
     </div>
   );
-}
+});

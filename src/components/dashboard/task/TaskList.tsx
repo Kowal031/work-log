@@ -40,7 +40,7 @@ export function TaskList({
   const hasActiveTimer = activeTimer !== null;
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-4" aria-label="Lista zadań" role="region">
       {tasks.map((task) => (
         <TaskItem
           key={task.id}

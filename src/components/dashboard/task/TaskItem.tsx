@@ -2,6 +2,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import type { TaskViewModel } from "@/types";
 import { CheckCircle2, Pencil, Play } from "lucide-react";
+import { memo } from "react";
 
 interface TaskItemProps {
   task: TaskViewModel;
@@ -12,7 +13,7 @@ interface TaskItemProps {
   isCurrentTaskActive: boolean;
 }
 
-export function TaskItem({
+export const TaskItem = memo(function TaskItem({
   task,
   onStartTimer,
   onEdit,
@@ -46,9 +47,7 @@ export function TaskItem({
               )}
               <CardTitle className="text-lg">{task.name}</CardTitle>
             </div>
-            {task.total_time && (
-              <p className="text-sm text-muted-foreground mt-1">Łącznie: {task.total_time}</p>
-            )}
+            {task.total_time && <p className="text-sm text-muted-foreground mt-1">Łącznie: {task.total_time}</p>}
             {task.description && (
               <CardDescription className="mt-1 whitespace-pre-wrap break-words">{task.description}</CardDescription>
             )}
@@ -94,4 +93,4 @@ export function TaskItem({
       </CardContent>
     </Card>
   );
-}
+});

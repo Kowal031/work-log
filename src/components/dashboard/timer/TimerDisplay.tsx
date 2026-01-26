@@ -1,11 +1,11 @@
-import { useEffect, useState } from "react";
+import { memo, useEffect, useState } from "react";
 
 interface TimerDisplayProps {
   startTime: string;
   isPaused?: boolean;
 }
 
-export function TimerDisplay({ startTime, isPaused = false }: TimerDisplayProps) {
+export const TimerDisplay = memo(function TimerDisplay({ startTime, isPaused = false }: TimerDisplayProps) {
   const [duration, setDuration] = useState("00:00:00");
   const [pausedAt, setPausedAt] = useState<number | null>(null);
 
@@ -46,4 +46,4 @@ export function TimerDisplay({ startTime, isPaused = false }: TimerDisplayProps)
       {duration}
     </div>
   );
-}
+});

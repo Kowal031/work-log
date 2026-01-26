@@ -15,7 +15,7 @@ export function ActiveTimerCard({ activeTimer, onStop }: ActiveTimerCardProps) {
   };
 
   return (
-    <div className="sticky top-4 z-50 mb-6">
+    <div className="sticky top-4 z-50 mb-6" aria-label="Aktywny licznik czasu" role="region">
       <Card className="border-primary bg-primary/5 shadow-lg">
         <CardHeader>
           <div className="flex items-center justify-between gap-4">
@@ -23,7 +23,13 @@ export function ActiveTimerCard({ activeTimer, onStop }: ActiveTimerCardProps) {
               <h3 className="text-lg font-semibold truncate">{activeTimer.taskName}</h3>
               <p className="text-sm text-muted-foreground">Aktywny licznik czasu</p>
             </div>
-            <Button onClick={handleStop} variant="destructive" size="lg" className="shrink-0">
+            <Button
+              onClick={handleStop}
+              variant="destructive"
+              size="lg"
+              className="shrink-0"
+              aria-label={`Zatrzymaj licznik dla zadania ${activeTimer.taskName}`}
+            >
               <Square className="h-5 w-5 mr-2" />
               Stop
             </Button>

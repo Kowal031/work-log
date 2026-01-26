@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
-import { useEffect, useRef } from "react";
+import { useEffect, useMemo, useRef } from "react";
 import { toast } from "sonner";
 import { useDashboardState } from "./hooks/useDashboardState";
 import { TaskList } from "./task/TaskList";
@@ -45,28 +45,32 @@ export default function DashboardView() {
   // Ref for ActiveTimerCard to enable auto-scroll
   const activeTimerRef = useRef<HTMLDivElement>(null);
 
-  // Calculate total time for a task from time entries
-  const calculateTotalTime = (entries: { start_time: string; end_time: string | null }[]): string => {
-    const totalSeconds = entries.reduce((sum, entry) => {
-      if (!entry.end_time) return sum; // Skip active entries
-      const start = new Date(entry.start_time).getTime();
-      const end = new Date(entry.end_time).getTime();
-      return sum + Math.floor((end - start) / 1000);
-    }, 0);
+  // Calculate total time for a task from time entries (memoized)
+  const calculateTotalTime = useMemo(
+    () =>
+      (entries: { start_time: string; end_time: string | null }[]): string => {
+        const totalSeconds = entries.reduce((sum, entry) => {
+          if (!entry.end_time) return sum; // Skip active entries
+          const start = new Date(entry.start_time).getTime();
+          const end = new Date(entry.end_time).getTime();
+          return sum + Math.floor((end - start) / 1000);
+        }, 0);
 
-    if (totalSeconds === 0) return "";
+        if (totalSeconds === 0) return "";
 
-    const hours = Math.floor(totalSeconds / 3600);
-    const minutes = Math.floor((totalSeconds % 3600) / 60);
+        const hours = Math.floor(totalSeconds / 3600);
+        const minutes = Math.floor((totalSeconds % 3600) / 60);
 
-    if (hours > 0) {
-      return `${hours}h ${minutes}m`;
-    }
-    if (minutes > 0) {
-      return `${minutes}m`;
-    }
-    return "";
-  };
+        if (hours > 0) {
+          return `${hours}h ${minutes}m`;
+        }
+        if (minutes > 0) {
+          return `${minutes}m`;
+        }
+        return "";
+      },
+    []
+  );
 
   // Fetch initial data
   useEffect(() => {
@@ -293,7 +297,7 @@ export default function DashboardView() {
     }
   };
   return (
-    <div className="container mx-auto px-4 py-8 max-w-4xl">
+    <main className="container mx-auto px-4 py-8 max-w-4xl" role="main" aria-label="Dashboard">
       {/* Recovery Modal */}
       <RecoveryModal
         activeTimer={activeTimer}
@@ -312,7 +316,7 @@ export default function DashboardView() {
       )}
 
       {/* Header with Create Button */}
-      <div className="flex items-center justify-between mb-6">
+      <header className="flex items-center justify-between mb-6" role="banner">
         <div>
           <h1 className="text-2xl sm:text-3xl font-bold">Moje zadania</h1>
           <p className="text-muted-foreground mt-1 text-sm sm:text-base">
@@ -323,7 +327,7 @@ export default function DashboardView() {
           <Plus className="h-5 w-5 mr-2" />
           Dodaj zadanie
         </Button>
-      </div>
+      </header>
 
       {/* FAB for mobile */}
       <Button
@@ -365,6 +369,6 @@ export default function DashboardView() {
         onConfirm={handleCompleteTask}
         onCancel={closeCompleteModal}
       />
-    </div>
+    </main>
   );
 }
