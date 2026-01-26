@@ -1,8 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import type { ActiveTimerViewModel } from "@/types";
-import { Pause, Play, Square } from "lucide-react";
-import { useState } from "react";
+import { Square } from "lucide-react";
 import { TimerDisplay } from "./TimerDisplay";
 
 interface ActiveTimerCardProps {
@@ -11,14 +10,8 @@ interface ActiveTimerCardProps {
 }
 
 export function ActiveTimerCard({ activeTimer, onStop }: ActiveTimerCardProps) {
-  const [isPaused, setIsPaused] = useState(false);
-
   const handleStop = () => {
     onStop(activeTimer.task_id, activeTimer.id);
-  };
-
-  const handlePauseResume = () => {
-    setIsPaused(!isPaused);
   };
 
   return (
@@ -30,29 +23,14 @@ export function ActiveTimerCard({ activeTimer, onStop }: ActiveTimerCardProps) {
               <h3 className="text-lg font-semibold truncate">{activeTimer.taskName}</h3>
               <p className="text-sm text-muted-foreground">Aktywny licznik czasu</p>
             </div>
-            <div className="flex gap-2 shrink-0">
-              <Button onClick={handlePauseResume} variant="outline" size="lg">
-                {isPaused ? (
-                  <>
-                    <Play className="h-5 w-5 mr-2" />
-                    Wznów
-                  </>
-                ) : (
-                  <>
-                    <Pause className="h-5 w-5 mr-2" />
-                    Pauza
-                  </>
-                )}
-              </Button>
-              <Button onClick={handleStop} variant="destructive" size="lg">
-                <Square className="h-5 w-5 mr-2" />
-                Stop
-              </Button>
-            </div>
+            <Button onClick={handleStop} variant="destructive" size="lg" className="shrink-0">
+              <Square className="h-5 w-5 mr-2" />
+              Stop
+            </Button>
           </div>
         </CardHeader>
         <CardContent>
-          <TimerDisplay startTime={activeTimer.start_time} isPaused={isPaused} />
+          <TimerDisplay startTime={activeTimer.start_time} isPaused={false} />
         </CardContent>
       </Card>
     </div>
