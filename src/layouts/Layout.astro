@@ -1,11 +1,15 @@
 ---
 import "../styles/global.css";
+import { Toaster } from "../components/ui/sonner";
+import { TopNavigationBar } from "../components/layout/TopNavigationBar";
 
 interface Props {
   title?: string;
+  showNav?: boolean;
 }
 
-const { title = "WorkLog" } = Astro.props;
+const { title = "WorkLog", showNav = true } = Astro.props;
+const currentPath = Astro.url.pathname;
 ---
 
 <!doctype html>
@@ -18,7 +22,9 @@ const { title = "WorkLog" } = Astro.props;
     <title>{title}</title>
   </head>
   <body>
+    {showNav && <TopNavigationBar client:load currentPath={currentPath} />}
     <slot />
+    <Toaster client:load />
   </body>
 </html>
 

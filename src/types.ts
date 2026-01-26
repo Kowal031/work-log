@@ -278,3 +278,26 @@ export interface ValidationErrorDto {
     message: string;
   }[];
 }
+
+// ============================================================================
+// View Models (for frontend components)
+// ============================================================================
+
+/**
+ * Task view model for dashboard
+ * Extends TaskResponseDto with UI state
+ */
+export interface TaskViewModel extends TaskResponseDto {
+  isBeingEdited: boolean;
+}
+
+/**
+ * Active timer view model for dashboard
+ * Extends ActiveTimerResponseDto with task name
+ */
+export interface ActiveTimerViewModel {
+  id: string;
+  task_id: string;
+  start_time: string;
+  taskName: string;
+}

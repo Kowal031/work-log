@@ -2,6 +2,8 @@ import { updateTimeEntry } from "@/lib/services/time-entry.service";
 import { updateTimeEntrySchema } from "@/lib/validation/time-entry.validation";
 import type { ErrorResponseDto, TimeEntryResponseDto, UpdateTimeEntryCommand } from "@/types";
 import type { APIRoute } from "astro";
+import type { SupabaseClient } from "@supabase/supabase-js";
+import type { Database } from "@/db/database.types";
 
 import { ZodError } from "zod";
 
@@ -190,3 +192,98 @@ export const PATCH: APIRoute = async ({ params, request, locals }) => {
     });
   }
 };
+
+/**
+ * DELETE /api/tasks/{taskId}/time-entries/{timeEntryId}
+ * Delete a time entry (discard without saving end_time)
+ */
+export const DELETE: APIRoute = async ({ params, locals }) => {
+  // Step 1: Extract and validate parameters from path
+  const { taskId, timeEntryId } = params;
+
+  if (!taskId || !timeEntryId) {
+    const errorResponse: ErrorResponseDto = {
+      error: "BadRequest",
+      message: "Task ID and time entry ID are required",
+    };
+    return new Response(JSON.stringify(errorResponse), {
+      status: 400,
+      headers: { "Content-Type": "application/json" },
+    });
+  }
+
+  // Validate UUID format for both parameters
+  const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+  if (!uuidRegex.test(taskId) || !uuidRegex.test(timeEntryId)) {
+    const errorResponse: ErrorResponseDto = {
+      error: "BadRequest",
+      message: "Invalid task ID or time entry ID format. Must be valid UUIDs.",
+    };
+    return new Response(JSON.stringify(errorResponse), {
+      status: 400,
+      headers: { "Content-Type": "application/json" },
+    });
+  }
+
+  // Step 2: Check authentication
+  const {
+    data: { user },
+    error: authError,
+  } = await locals.supabase.auth.getUser();
+
+  if (authError || !user) {
+    const errorResponse: ErrorResponseDto = {
+      error: "Unauthorized",
+      message: "Authentication required to delete time entries",
+    };
+    return new Response(JSON.stringify(errorResponse), {
+      status: 401,
+      headers: { "Content-Type": "application/json" },
+    });
+  }
+
+  // Step 3: Verify the time entry belongs to the user and task
+  const { data: timeEntry, error: fetchError } = await (locals.supabase as SupabaseClient<Database>)
+    .from("time_entries")
+    .select("*")
+    .eq("id", timeEntryId)
+    .eq("task_id", taskId)
+    .eq("user_id", user.id)
+    .single();
+
+  if (fetchError || !timeEntry) {
+    const errorResponse: ErrorResponseDto = {
+      error: "NotFound",
+      message: "Time entry not found or you don't have permission to delete it",
+    };
+    return new Response(JSON.stringify(errorResponse), {
+      status: 404,
+      headers: { "Content-Type": "application/json" },
+    });
+  }
+
+  // Step 4: Delete the time entry
+  const { error: deleteError } = await (locals.supabase as SupabaseClient<Database>)
+    .from("time_entries")
+    .delete()
+    .eq("id", timeEntryId)
+    .eq("user_id", user.id);
+
+  if (deleteError) {
+    const errorResponse: ErrorResponseDto = {
+      error: "InternalServerError",
+      message: "Failed to delete time entry",
+      details: { error: deleteError.message },
+    };
+    return new Response(JSON.stringify(errorResponse), {
+      status: 500,
+      headers: { "Content-Type": "application/json" },
+    });
+  }
+
+  // Step 5: Return success response with no content
+  return new Response(null, {
+    status: 204,
+  });
+};
+
