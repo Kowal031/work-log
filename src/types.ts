@@ -289,6 +289,7 @@ export interface ValidationErrorDto {
  */
 export interface TaskViewModel extends TaskResponseDto {
   isBeingEdited: boolean;
+  total_time?: string; // Formatted total time (e.g., "2h 45m")
 }
 
 /**

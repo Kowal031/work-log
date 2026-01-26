@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { toast } from "sonner";
 import { useDashboardState } from "./hooks/useDashboardState";
 import { TaskList } from "./task/TaskList";
@@ -42,6 +42,32 @@ export default function DashboardView() {
     closeCompleteModal,
   } = useDashboardState();
 
+  // Ref for ActiveTimerCard to enable auto-scroll
+  const activeTimerRef = useRef<HTMLDivElement>(null);
+
+  // Calculate total time for a task from time entries
+  const calculateTotalTime = (entries: { start_time: string; end_time: string | null }[]): string => {
+    const totalSeconds = entries.reduce((sum, entry) => {
+      if (!entry.end_time) return sum; // Skip active entries
+      const start = new Date(entry.start_time).getTime();
+      const end = new Date(entry.end_time).getTime();
+      return sum + Math.floor((end - start) / 1000);
+    }, 0);
+
+    if (totalSeconds === 0) return "";
+
+    const hours = Math.floor(totalSeconds / 3600);
+    const minutes = Math.floor((totalSeconds % 3600) / 60);
+
+    if (hours > 0) {
+      return `${hours}h ${minutes}m`;
+    }
+    if (minutes > 0) {
+      return `${minutes}m`;
+    }
+    return "";
+  };
+
   // Fetch initial data
   useEffect(() => {
     const fetchData = async () => {
@@ -54,7 +80,20 @@ export default function DashboardView() {
           tasksApi.getActiveTimer(),
         ]);
 
-        const tasksWithUI: TaskViewModel[] = tasksData.map((task) => ({
+        // Fetch time entries for all tasks to calculate total time
+        const tasksWithTimeEntries = await Promise.all(
+          tasksData.map(async (task) => {
+            try {
+              const entries = await tasksApi.getTimeEntries(task.id);
+              const total_time = calculateTotalTime(entries);
+              return { ...task, total_time };
+            } catch {
+              return { ...task, total_time: "" };
+            }
+          })
+        );
+
+        const tasksWithUI: TaskViewModel[] = tasksWithTimeEntries.map((task) => ({
           ...task,
           isBeingEdited: false,
         }));
@@ -144,6 +183,11 @@ export default function DashboardView() {
       toast.success("Licznik uruchomiony", {
         description: `Rozpoczęto śledzenie czasu dla: ${task?.name}`,
       });
+
+      // Auto-scroll to ActiveTimerCard
+      setTimeout(() => {
+        activeTimerRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+      }, 100);
     } catch (err) {
       const message = err instanceof Error ? err.message : "Failed to start timer";
 
@@ -261,19 +305,35 @@ export default function DashboardView() {
       />
 
       {/* Active Timer Card - Sticky */}
-      {activeTimer && <ActiveTimerCard activeTimer={activeTimer} onStop={handleStopTimer} />}
+      {activeTimer && (
+        <div ref={activeTimerRef}>
+          <ActiveTimerCard activeTimer={activeTimer} onStop={handleStopTimer} />
+        </div>
+      )}
 
       {/* Header with Create Button */}
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h1 className="text-3xl font-bold">Moje zadania</h1>
-          <p className="text-muted-foreground mt-1">Zarządzaj swoimi zadaniami i śledź czas pracy</p>
+          <h1 className="text-2xl sm:text-3xl font-bold">Moje zadania</h1>
+          <p className="text-muted-foreground mt-1 text-sm sm:text-base">
+            Zarządzaj swoimi zadaniami i śledź czas pracy
+          </p>
         </div>
-        <Button onClick={openCreateModal} size="lg">
+        <Button onClick={openCreateModal} size="lg" className="hidden sm:flex">
           <Plus className="h-5 w-5 mr-2" />
           Dodaj zadanie
         </Button>
       </div>
+
+      {/* FAB for mobile */}
+      <Button
+        onClick={openCreateModal}
+        size="lg"
+        className="sm:hidden fixed bottom-6 right-6 z-40 h-14 w-14 rounded-full shadow-lg"
+        aria-label="Dodaj nowe zadanie"
+      >
+        <Plus className="h-6 w-6" />
+      </Button>
 
       {/* Task List */}
       <TaskList
