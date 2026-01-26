@@ -30,19 +30,7 @@ export const GET: APIRoute = async ({ locals }) => {
   try {
     const activeTimer = await getActiveTimer(locals.supabase, user.id);
 
-    // Step 3: Handle no active timer (404)
-    if (!activeTimer) {
-      const errorResponse: ErrorResponseDto = {
-        error: "NotFound",
-        message: "No active timer found",
-      };
-      return new Response(JSON.stringify(errorResponse), {
-        status: 404,
-        headers: { "Content-Type": "application/json" },
-      });
-    }
-
-    // Step 4: Return active timer data (200)
+    // Step 3: Return active timer data or null (always 200 OK)
     return new Response(JSON.stringify(activeTimer), {
       status: 200,
       headers: {
