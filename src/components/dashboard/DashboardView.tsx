@@ -84,21 +84,11 @@ export default function DashboardView() {
           tasksApi.getActiveTimer(),
         ]);
 
-        // Fetch time entries for all tasks to calculate total time
-        const tasksWithTimeEntries = await Promise.all(
-          tasksData.map(async (task) => {
-            try {
-              const entries = await tasksApi.getTimeEntries(task.id);
-              const total_time = calculateTotalTime(entries);
-              return { ...task, total_time };
-            } catch {
-              return { ...task, total_time: "" };
-            }
-          })
-        );
-
-        const tasksWithUI: TaskViewModel[] = tasksWithTimeEntries.map((task) => ({
+        // TODO: Optimize with batch endpoint to get all time entries at once
+        // For now, we'll calculate total_time on demand in TaskItem component
+        const tasksWithUI: TaskViewModel[] = tasksData.map((task) => ({
           ...task,
+          total_time: "", // Will be calculated on demand
           isBeingEdited: false,
         }));
 
