@@ -76,6 +76,8 @@ export function EditTaskModal({ isOpen, onClose, onSave, task, hasActiveTimer }:
       toast.success("Sukces", {
         description: "Sesja została zaktualizowana",
       });
+      // Clear highlighted session to prevent re-opening modal
+      setHighlightedSessionId(null);
       // Refresh sessions
       await fetchSessions();
       setIsEditSessionModalOpen(false);

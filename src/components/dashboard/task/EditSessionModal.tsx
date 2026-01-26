@@ -25,7 +25,7 @@ export function EditSessionModal({ isOpen, session, onClose, onSave }: EditSessi
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Format datetime-local value (YYYY-MM-DDTHH:mm)
+  // Format datetime-local value (YYYY-MM-DDTHH:mm) - without seconds
   const formatDateTimeLocal = (isoString: string) => {
     const date = new Date(isoString);
     const year = date.getFullYear();
@@ -47,7 +47,7 @@ export function EditSessionModal({ isOpen, session, onClose, onSave }: EditSessi
     }
   }, [session]);
 
-  // Get max datetime (current time)
+  // Get max datetime (current time) - without seconds
   const getMaxDateTime = () => {
     const now = new Date();
     const year = now.getFullYear();
@@ -108,9 +108,9 @@ export function EditSessionModal({ isOpen, session, onClose, onSave }: EditSessi
         </DialogHeader>
 
         <form onSubmit={handleSubmit}>
-          <div className="space-y-4 py-4">
-            <div className="space-y-2">
-              <Label htmlFor="start_time" className="text-sm font-medium">
+          <div className="space-y-6 py-6">
+            <div className="space-y-3">
+              <Label htmlFor="start_time" className="text-sm font-semibold">
                 Czas rozpoczęcia
               </Label>
               <Input
@@ -119,14 +119,13 @@ export function EditSessionModal({ isOpen, session, onClose, onSave }: EditSessi
                 value={startTime}
                 onChange={(e) => setStartTime(e.target.value)}
                 max={getMaxDateTime()}
-                step="1"
                 required
-                className="w-full"
+                className="w-full text-base h-11 px-4"
               />
             </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="end_time" className="text-sm font-medium">
+            <div className="space-y-3">
+              <Label htmlFor="end_time" className="text-sm font-semibold">
                 Czas zakończenia
               </Label>
               <Input
@@ -135,20 +134,23 @@ export function EditSessionModal({ isOpen, session, onClose, onSave }: EditSessi
                 value={endTime}
                 onChange={(e) => setEndTime(e.target.value)}
                 max={getMaxDateTime()}
-                step="1"
                 required
-                className="w-full"
+                className="w-full text-base h-11 px-4"
               />
             </div>
 
-            {error && <p className="text-sm text-destructive">{error}</p>}
+            {error && (
+              <div className="rounded-lg bg-destructive/10 p-4 border border-destructive/20">
+                <p className="text-sm font-medium text-destructive">{error}</p>
+              </div>
+            )}
           </div>
 
-          <DialogFooter>
-            <Button type="button" variant="outline" onClick={onClose}>
+          <DialogFooter className="gap-2">
+            <Button type="button" variant="outline" onClick={onClose} className="min-w-[100px]">
               Anuluj
             </Button>
-            <Button type="submit" disabled={isSubmitting}>
+            <Button type="submit" disabled={isSubmitting} className="min-w-[100px]">
               {isSubmitting ? "Zapisywanie..." : "Zapisz zmiany"}
             </Button>
           </DialogFooter>
