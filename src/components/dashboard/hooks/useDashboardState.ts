@@ -1,5 +1,6 @@
 import { useCallback, useState } from "react";
 import type { ActiveTimerViewModel, TaskViewModel } from "@/types";
+import type { ExtendedError } from "@/lib/api/tasks.api";
 
 interface UseDashboardStateReturn {
   tasks: TaskViewModel[];
@@ -24,6 +25,10 @@ interface UseDashboardStateReturn {
   taskToComplete: TaskViewModel | null;
   openCompleteModal: (task: TaskViewModel) => void;
   closeCompleteModal: () => void;
+  isCapacityExceededModalOpen: boolean;
+  capacityExceededError: ExtendedError | null;
+  openCapacityExceededModal: (error: ExtendedError) => void;
+  closeCapacityExceededModal: () => void;
 }
 
 export function useDashboardState(): UseDashboardStateReturn {
@@ -37,6 +42,8 @@ export function useDashboardState(): UseDashboardStateReturn {
   const [isRecoveryModalOpen, setIsRecoveryModalOpen] = useState(false);
   const [isCompleteModalOpen, setIsCompleteModalOpen] = useState(false);
   const [taskToComplete, setTaskToComplete] = useState<TaskViewModel | null>(null);
+  const [isCapacityExceededModalOpen, setIsCapacityExceededModalOpen] = useState(false);
+  const [capacityExceededError, setCapacityExceededError] = useState<ExtendedError | null>(null);
 
   const openCreateModal = useCallback(() => {
     setIsCreateModalOpen(true);
@@ -74,6 +81,16 @@ export function useDashboardState(): UseDashboardStateReturn {
     setTaskToComplete(null);
   }, []);
 
+  const openCapacityExceededModal = useCallback((error: ExtendedError) => {
+    setCapacityExceededError(error);
+    setIsCapacityExceededModalOpen(true);
+  }, []);
+
+  const closeCapacityExceededModal = useCallback(() => {
+    setIsCapacityExceededModalOpen(false);
+    setCapacityExceededError(null);
+  }, []);
+
   return {
     tasks,
     setTasks,
@@ -97,5 +114,9 @@ export function useDashboardState(): UseDashboardStateReturn {
     taskToComplete,
     openCompleteModal,
     closeCompleteModal,
+    isCapacityExceededModalOpen,
+    capacityExceededError,
+    openCapacityExceededModal,
+    closeCapacityExceededModal,
   };
 }

@@ -9,6 +9,7 @@ import { EditTaskModal } from "./task/EditTaskModal";
 import { CompleteConfirmationDialog } from "./task/CompleteConfirmationDialog";
 import { ActiveTimerCard } from "./timer/ActiveTimerCard";
 import { RecoveryModal } from "./RecoveryModal";
+import { CapacityExceededModal } from "./CapacityExceededModal";
 import * as tasksApi from "@/lib/api/tasks.api";
 import type { TaskViewModel } from "@/types";
 import {
@@ -40,6 +41,10 @@ export default function DashboardView() {
     taskToComplete,
     openCompleteModal,
     closeCompleteModal,
+    isCapacityExceededModalOpen,
+    capacityExceededError,
+    openCapacityExceededModal,
+    closeCapacityExceededModal,
   } = useDashboardState();
 
   // Ref for ActiveTimerCard to enable auto-scroll
@@ -183,10 +188,8 @@ export default function DashboardView() {
       const extendedError = err as tasksApi.ExtendedError;
 
       if (extendedError.code === "DailyCapacityExceeded" && extendedError.details) {
-        toast.error(extendedError.message, {
-          description: "",
-          duration: 7000,
-        });
+        // Open capacity exceeded modal instead of showing toast
+        openCapacityExceededModal(extendedError);
       } else {
         const message = err instanceof Error ? err.message : "Failed to stop timer";
         toast.error("Błąd", {
@@ -250,6 +253,49 @@ export default function DashboardView() {
       });
     }
   };
+  // Capacity Exceeded Modal handlers
+  const handleCapacityExceededDiscard = async () => {
+    if (!activeTimer) return;
+    try {
+      await tasksApi.deleteTimeEntry(activeTimer.task_id, activeTimer.id);
+      setActiveTimer(null);
+      closeCapacityExceededModal();
+      toast.info("Sesja odrzucona", {
+        description: "Czas nie został zapisany",
+      });
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "Failed to discard timer";
+      toast.error("Błąd", {
+        description: message,
+      });
+    }
+  };
+
+  const handleCapacityExceededManualCorrect = async () => {
+    if (!activeTimer) return;
+
+    try {
+      // Don't stop the timer, just close the modal and open edit modal
+      closeCapacityExceededModal();
+
+      const task = tasks.find((t) => t.id === activeTimer.task_id);
+      if (task) {
+        // Store the active timer ID to highlight in edit modal
+        sessionStorage.setItem("highlightSessionId", activeTimer.id);
+        openEditModal(task);
+      }
+
+      toast.info("Tryb korekty", {
+        description: "Timer pozostaje aktywny. Możesz skorygować sesję.",
+      });
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "Failed to open edit";
+      toast.error("Błąd", {
+        description: message,
+      });
+    }
+  };
+
   const handleCompleteTask = async () => {
     if (!taskToComplete) return;
 
@@ -280,6 +326,25 @@ export default function DashboardView() {
         onDiscard={handleRecoveryDiscard}
         onManualCorrect={handleRecoveryManualCorrect}
         onClose={closeRecoveryModal}
+      />
+
+      {/* Capacity Exceeded Modal */}
+      <CapacityExceededModal
+        activeTimer={activeTimer}
+        isOpen={isCapacityExceededModalOpen}
+        errorMessage={capacityExceededError?.message || ""}
+        errorDetails={
+          capacityExceededError?.details as {
+            day: string;
+            existing_duration_formatted: string;
+            new_duration_formatted: string;
+            total_duration_formatted: string;
+            limit: string;
+          } | null
+        }
+        onDiscard={handleCapacityExceededDiscard}
+        onManualCorrect={handleCapacityExceededManualCorrect}
+        onClose={closeCapacityExceededModal}
       />
 
       {/* Active Timer Card - Sticky */}
