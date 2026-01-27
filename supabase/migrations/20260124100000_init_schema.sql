@@ -93,7 +93,12 @@ comment on view public.active_task_details is 'provides a view of tasks that are
 --
 
 -- create a function to get a daily summary of time spent on tasks for a given user and date.
-create function public.get_daily_summary(p_user_id uuid, p_date date)
+-- timezone_offset_minutes: offset from UTC in minutes (e.g., 60 for UTC+1, -300 for UTC-5)
+create function public.get_daily_summary(
+    p_user_id uuid, 
+    p_date date,
+    p_timezone_offset_minutes integer default 0
+)
 returns table (task_id uuid, task_name varchar(255), total_duration interval) as $$
 begin
     return query
@@ -107,13 +112,19 @@ begin
         public.time_entries te on t.id = te.task_id
     where
         te.user_id = p_user_id and
-        te.start_time::date = p_date
+        (
+            -- session started on the specified local date
+            ((te.start_time at time zone 'UTC') + (p_timezone_offset_minutes || ' minutes')::interval)::date = p_date
+            or
+            -- session ended on the specified local date (for sessions spanning multiple days)
+            ((coalesce(te.end_time, now()) at time zone 'UTC') + (p_timezone_offset_minutes || ' minutes')::interval)::date = p_date
+        )
     group by
         t.id, t.name;
 end;
 $$ language plpgsql stable;
 
-comment on function public.get_daily_summary(uuid, date) is 'returns a summary of total time spent per task for a specific user and day.';
+comment on function public.get_daily_summary(uuid, date, integer) is 'returns a summary of total time spent per task for a specific user and local day, considering timezone offset.';
 
 --
 -- row level security (rls)
