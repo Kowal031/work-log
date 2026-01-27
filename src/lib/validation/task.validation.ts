@@ -5,7 +5,7 @@ import { z } from "zod";
  * POST /api/tasks
  */
 export const createTaskSchema = z.object({
-  name: z.string().trim().min(1, "Task name is required").max(255, "Task name must not exceed 255 characters"),
+  name: z.string().trim().min(1, "Task name is required").max(100, "Task name must not exceed 100 characters"),
   description: z.string().max(5000, "Task description must not exceed 5000 characters").optional(),
 });
 
@@ -28,7 +28,7 @@ export const updateTaskSchema = z.object({
     .string()
     .trim()
     .min(1, "Task name is required")
-    .max(255, "Task name must not exceed 255 characters")
+    .max(100, "Task name must not exceed 100 characters")
     .optional(),
   description: z.string().max(5000, "Task description must not exceed 5000 characters").optional(),
   status: z.enum(["active", "completed"]).optional(),

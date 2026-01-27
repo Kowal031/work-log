@@ -36,16 +36,18 @@ export function SummaryTaskItem({ task, selectedDate, onTaskClick }: SummaryTask
 
   return (
     <Card
-      className="hover:bg-accent/50 transition-colors cursor-pointer"
+      className="hover:bg-accent/50 transition-colors cursor-pointer h-full"
       onClick={() => onTaskClick(task.task_id, selectedDate)}
     >
       <CardContent className="p-4">
-        <div className="flex items-center justify-between">
+        <div className="flex items-start justify-between">
           <div className="flex-1 min-w-0">
-            <h3 className="font-medium text-base truncate">{task.task_name}</h3>
+            <h3 className="font-medium text-base" style={{ wordBreak: "break-all" }}>
+              {task.task_name}
+            </h3>
             <p className={`text-sm ${getStatusColor(task.task_status)}`}>{getStatusLabel(task.task_status)}</p>
           </div>
-          <div className="flex flex-col items-end ml-4">
+          <div className="flex flex-col items-start ml-4 self-start">
             <p className="text-lg font-semibold text-primary">{task.duration_formatted}</p>
             <p className="text-xs text-muted-foreground">
               {task.entries_count} {task.entries_count === 1 ? "sesja" : "sesji"}

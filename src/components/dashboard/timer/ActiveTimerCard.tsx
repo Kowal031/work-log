@@ -20,7 +20,7 @@ export function ActiveTimerCard({ activeTimer, onStop }: ActiveTimerCardProps) {
         <CardHeader>
           <div className="flex items-center justify-between gap-4">
             <div className="flex-1 min-w-0">
-              <h3 className="text-lg font-semibold truncate">{activeTimer.taskName}</h3>
+              <h3 className="text-lg font-semibold break-all">{activeTimer.taskName}</h3>
               <p className="text-sm text-muted-foreground">Aktywny licznik czasu</p>
             </div>
             <Button

@@ -200,7 +200,7 @@ export function EditTaskModalSummary({
       <Dialog open={isOpen} onOpenChange={onClose}>
         <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>{taskName}</DialogTitle>
+            <DialogTitle style={{ wordBreak: "break-all", paddingRight: "0.5rem" }}>{taskName}</DialogTitle>
             <DialogDescription>Historia sesji czasowych dla dnia: {formattedDate}</DialogDescription>
           </DialogHeader>
 

@@ -26,10 +26,10 @@ export function CompleteConfirmationDialog({ isOpen, task, onConfirm, onCancel }
         <AlertDialogHeader>
           <AlertDialogTitle>Ukończenie zadania</AlertDialogTitle>
           <AlertDialogDescription className="space-y-2">
-            <p>
-              Czy na pewno chcesz oznaczyć zadanie <strong className="text-foreground">{task.name}</strong> jako
-              ukończone?
-            </p>
+            <p>Czy na pewno chcesz oznaczyć zadanie jako ukończone?</p>
+            <strong style={{ wordBreak: "break-all" }} className="text-foreground">
+              {task.name}
+            </strong>
             <p className="text-amber-600 dark:text-amber-500">
               Zadanie zostanie zarchiwizowane i nie będzie widoczne na liście aktywnych zadań.
             </p>

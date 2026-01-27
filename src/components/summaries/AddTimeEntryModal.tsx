@@ -22,6 +22,7 @@ interface AddTimeEntryModalProps {
 export function AddTimeEntryModal({ isOpen, onClose, taskName, initialDate, onSave }: AddTimeEntryModalProps) {
   const [startTime, setStartTime] = useState("");
   const [endTime, setEndTime] = useState("");
+  const [durationMinutes, setDurationMinutes] = useState("00");
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -38,12 +39,24 @@ export function AddTimeEntryModal({ isOpen, onClose, taskName, initialDate, onSa
   // Initialize form when modal opens
   useEffect(() => {
     if (isOpen) {
-      // Default: 9:00 - 17:00
-      setStartTime(formatDateTimeLocal(initialDate, 9, 0));
-      setEndTime(formatDateTimeLocal(initialDate, 17, 0));
+      // Default: current time for start, end time will be calculated from duration
+      const now = new Date();
+      const currentTime = formatDateTimeLocal(now, now.getHours(), now.getMinutes());
+      setStartTime(currentTime);
+      setDurationMinutes("00");
       setError(null);
     }
   }, [isOpen, initialDate]);
+
+  // Update endTime when startTime or durationMinutes changes
+  useEffect(() => {
+    if (startTime && durationMinutes) {
+      const start = new Date(startTime);
+      const minutes = parseInt(durationMinutes) || 0;
+      const end = new Date(start.getTime() + minutes * 60 * 1000);
+      setEndTime(formatDateTimeLocal(end, end.getHours(), end.getMinutes()));
+    }
+  }, [startTime, durationMinutes]);
 
   // Get start of selected date (00:00:00)
   const getStartOfSelectedDate = () => {
@@ -116,6 +129,13 @@ export function AddTimeEntryModal({ isOpen, onClose, taskName, initialDate, onSa
     const now = new Date();
     const startOfSelectedDate = getStartOfSelectedDate();
     const endOfSelectedDate = getEndOfSelectedDate();
+    const minutes = parseInt(durationMinutes) || 0;
+
+    // Validation: duration must be positive
+    if (minutes <= 0) {
+      setError("Czas trwania musi być większy od zera");
+      return;
+    }
 
     // Validation: start_time must be within selected date
     if (start < startOfSelectedDate || start > endOfSelectedDate) {
@@ -157,7 +177,7 @@ export function AddTimeEntryModal({ isOpen, onClose, taskName, initialDate, onSa
       <DialogContent>
         <DialogHeader>
           <DialogTitle>Dodaj sesję czasową</DialogTitle>
-          <DialogDescription>
+          <DialogDescription style={{ wordBreak: "break-all" }}>
             Dodaj nową sesję dla zadania: <strong>{taskName}</strong>
           </DialogDescription>
         </DialogHeader>
@@ -176,6 +196,22 @@ export function AddTimeEntryModal({ isOpen, onClose, taskName, initialDate, onSa
                 min={getMinStartDateTime()}
                 max={getMaxStartDateTime()}
                 required
+                className="w-full text-base h-11 px-4"
+              />
+            </div>
+
+            <div className="space-y-3">
+              <Label htmlFor="duration_minutes" className="text-sm font-semibold">
+                Czas trwania (minuty)
+              </Label>
+              <Input
+                id="duration_minutes"
+                type="number"
+                value={durationMinutes}
+                onChange={(e) => setDurationMinutes(e.target.value)}
+                min="0"
+                max="1440"
+                placeholder="00"
                 className="w-full text-base h-11 px-4"
               />
             </div>
@@ -215,7 +251,11 @@ export function AddTimeEntryModal({ isOpen, onClose, taskName, initialDate, onSa
             <Button type="button" variant="outline" onClick={onClose} className="min-w-[100px]">
               Anuluj
             </Button>
-            <Button type="submit" disabled={isSubmitting || !duration} className="min-w-[100px]">
+            <Button
+              type="submit"
+              disabled={isSubmitting || !duration || (parseInt(durationMinutes) || 0) <= 0}
+              className="min-w-[100px]"
+            >
               {isSubmitting ? "Zapisywanie..." : "Dodaj sesję"}
             </Button>
           </DialogFooter>

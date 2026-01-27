@@ -40,17 +40,23 @@ export function TaskList({
   const hasActiveTimer = activeTimer !== null;
 
   return (
-    <div className="space-y-4" aria-label="Lista zadań" role="region">
+    <div
+      className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-4 max-h-[45rem] overflow-y-auto"
+      style={{ scrollbarWidth: "thin", scrollbarColor: "rgb(203 213 225) transparent" }}
+      aria-label="Lista zadań"
+      role="region"
+    >
       {tasks.map((task) => (
-        <TaskItem
-          key={task.id}
-          task={task}
-          onStartTimer={onStartTimer}
-          onEdit={onEdit}
-          onComplete={onComplete}
-          isTimerActive={hasActiveTimer}
-          isCurrentTaskActive={activeTimer?.task_id === task.id}
-        />
+        <div key={task.id} className="min-h-[10rem] max-h-[17.5rem]">
+          <TaskItem
+            task={task}
+            onStartTimer={onStartTimer}
+            onEdit={onEdit}
+            onComplete={onComplete}
+            isTimerActive={hasActiveTimer}
+            isCurrentTaskActive={activeTimer?.task_id === task.id}
+          />
+        </div>
       ))}
     </div>
   );

@@ -24,6 +24,8 @@ export function TaskForm({ onSubmit, initialData, onCancel }: TaskFormProps) {
       newErrors.name = "Nazwa zadania jest wymagana";
     } else if (name.trim().length < 3) {
       newErrors.name = "Nazwa zadania musi mieć co najmniej 3 znaki";
+    } else if (name.trim().length > 100) {
+      newErrors.name = "Nazwa zadania nie może być dłuższa niż 100 znaków";
     }
 
     if (description.trim().length > 5000) {
@@ -46,9 +48,12 @@ export function TaskForm({ onSubmit, initialData, onCancel }: TaskFormProps) {
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       <div className="space-y-2">
-        <Label htmlFor="task-name">
-          Nazwa zadania <span className="text-destructive">*</span>
-        </Label>
+        <div className="flex items-center justify-between">
+          <Label htmlFor="task-name">
+            Nazwa zadania <span className="text-destructive">*</span>
+          </Label>
+          <span className="text-xs text-muted-foreground">{name.length} / 100</span>
+        </div>
         <Input
           id="task-name"
           value={name}
@@ -57,6 +62,7 @@ export function TaskForm({ onSubmit, initialData, onCancel }: TaskFormProps) {
             setErrors((prev) => ({ ...prev, name: undefined }));
           }}
           placeholder="Wprowadź nazwę zadania"
+          maxLength={100}
           aria-invalid={!!errors.name}
           aria-describedby={errors.name ? "task-name-error" : undefined}
         />

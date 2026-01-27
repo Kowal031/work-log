@@ -98,7 +98,7 @@ export function RecoveryModal({
         <AlertDialogHeader>
           <AlertDialogTitle>Wykryto aktywny timer</AlertDialogTitle>
           <AlertDialogDescription className="space-y-3">
-            <p>
+            <p style={{ wordBreak: "break-all" }}>
               Timer dla zadania <strong>{activeTimer.taskName}</strong> był aktywny podczas zamykania aplikacji.
             </p>
             <p className="text-base font-semibold">Czas trwania: {formattedTime}</p>

@@ -1,5 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import type { TaskViewModel } from "@/types";
 import { CheckCircle2, Pencil, Play } from "lucide-react";
 import { memo } from "react";
@@ -34,7 +35,7 @@ export const TaskItem = memo(function TaskItem({
   };
 
   return (
-    <Card className={isCurrentTaskActive ? "border-primary bg-primary/5" : ""}>
+    <Card className={`h-full ${isCurrentTaskActive ? "border-primary bg-primary/5" : ""}`}>
       <CardHeader>
         <div className="flex items-start justify-between gap-4">
           <div className="flex-1 min-w-0">
@@ -45,11 +46,29 @@ export const TaskItem = memo(function TaskItem({
                   <span className="relative inline-flex rounded-full h-3 w-3 bg-destructive"></span>
                 </div>
               )}
-              <CardTitle className="text-lg">{task.name}</CardTitle>
+              <CardTitle className="text-lg" style={{ wordBreak: "break-all" }}>
+                {task.name}
+              </CardTitle>
             </div>
             {task.total_time && <p className="text-sm text-muted-foreground mt-1">Łącznie: {task.total_time}</p>}
             {task.description && (
-              <CardDescription className="mt-1 whitespace-pre-wrap break-words">{task.description}</CardDescription>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <CardDescription
+                    style={{ wordBreak: "break-all" }}
+                    className="mt-1 line-clamp-3 cursor-pointer hover:text-primary transition-colors"
+                  >
+                    {task.description}
+                  </CardDescription>
+                </PopoverTrigger>
+                <PopoverContent
+                  style={{ scrollbarWidth: "thin", scrollbarColor: "rgb(203 213 225) transparent" }}
+                  className="w-80 max-h-96 overflow-y-auto"
+                  side="top"
+                >
+                  <div className="whitespace-pre-wrap break-words">{task.description}</div>
+                </PopoverContent>
+              </Popover>
             )}
           </div>
           <div className="flex gap-2 shrink-0">

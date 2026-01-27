@@ -11,9 +11,14 @@ interface SummaryTaskListProps {
 export function SummaryTaskList({ tasks, isLoading, selectedDate, onTaskClick }: SummaryTaskListProps) {
   if (isLoading) {
     return (
-      <div className="space-y-3">
+      <div
+        className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-4 max-h-[35rem] overflow-y-auto"
+        style={{ scrollbarWidth: "thin", scrollbarColor: "rgb(203 213 225) transparent" }}
+      >
         {[1, 2, 3].map((i) => (
-          <div key={i} className="h-20 bg-gray-200 rounded-lg animate-pulse" />
+          <div key={i} className="min-h-[10rem] max-h-[17.5rem]">
+            <div className="h-20 bg-gray-200 rounded-lg animate-pulse" />
+          </div>
         ))}
       </div>
     );
@@ -31,9 +36,14 @@ export function SummaryTaskList({ tasks, isLoading, selectedDate, onTaskClick }:
   }
 
   return (
-    <div className="space-y-3">
+    <div
+      className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-4 max-h-[35rem] overflow-y-auto"
+      style={{ scrollbarWidth: "thin", scrollbarColor: "rgb(203 213 225) transparent" }}
+    >
       {tasks.map((task) => (
-        <SummaryTaskItem key={task.task_id} task={task} selectedDate={selectedDate} onTaskClick={onTaskClick} />
+        <div key={task.task_id} className="min-h-[10rem] max-h-[17.5rem]">
+          <SummaryTaskItem task={task} selectedDate={selectedDate} onTaskClick={onTaskClick} />
+        </div>
       ))}
     </div>
   );

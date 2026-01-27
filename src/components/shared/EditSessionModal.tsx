@@ -1,4 +1,5 @@
 import { Button } from "@/components/ui/button";
+import { Calendar } from "@/components/ui/calendar";
 import {
   Dialog,
   DialogContent,
@@ -7,9 +8,12 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import type { TimeEntryResponseDto } from "@/types";
+import { cn } from "@/lib/utils";
+import { CalendarIcon } from "lucide-react";
 import { useEffect, useState } from "react";
 
 interface EditSessionModalProps {
@@ -20,63 +24,58 @@ interface EditSessionModalProps {
 }
 
 export function EditSessionModal({ isOpen, session, onClose, onSave }: EditSessionModalProps) {
-  const [startTime, setStartTime] = useState("");
-  const [endTime, setEndTime] = useState("");
+  const [startDate, setStartDate] = useState<Date>();
+  const [startHour, setStartHour] = useState("");
+  const [startMinute, setStartMinute] = useState("");
+  const [endDate, setEndDate] = useState<Date>();
+  const [endHour, setEndHour] = useState("");
+  const [endMinute, setEndMinute] = useState("");
+  const [startPopoverOpen, setStartPopoverOpen] = useState(false);
+  const [endPopoverOpen, setEndPopoverOpen] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
-
-  // Format datetime-local value (YYYY-MM-DDTHH:mm) - without seconds
-  const formatDateTimeLocal = (isoString: string) => {
-    const date = new Date(isoString);
-    const year = date.getFullYear();
-    const month = String(date.getMonth() + 1).padStart(2, "0");
-    const day = String(date.getDate()).padStart(2, "0");
-    const hours = String(date.getHours()).padStart(2, "0");
-    const minutes = String(date.getMinutes()).padStart(2, "0");
-    return `${year}-${month}-${day}T${hours}:${minutes}`;
-  };
 
   // Initialize form when session changes
   useEffect(() => {
     if (session) {
-      setStartTime(formatDateTimeLocal(session.start_time));
+      const startDateTime = new Date(session.start_time);
+      setStartDate(startDateTime);
+      setStartHour(String(startDateTime.getHours()).padStart(2, "0"));
+      setStartMinute(String(startDateTime.getMinutes()).padStart(2, "0"));
+
       if (session.end_time) {
-        setEndTime(formatDateTimeLocal(session.end_time));
+        const endDateTime = new Date(session.end_time);
+        setEndDate(endDateTime);
+        setEndHour(String(endDateTime.getHours()).padStart(2, "0"));
+        setEndMinute(String(endDateTime.getMinutes()).padStart(2, "0"));
       }
       setError(null);
     }
   }, [session]);
 
-  // Get max datetime (current time) - without seconds
-  const getMaxDateTime = () => {
-    const now = new Date();
-    const year = now.getFullYear();
-    const month = String(now.getMonth() + 1).padStart(2, "0");
-    const day = String(now.getDate()).padStart(2, "0");
-    const hours = String(now.getHours()).padStart(2, "0");
-    const minutes = String(now.getMinutes()).padStart(2, "0");
-    return `${year}-${month}-${day}T${hours}:${minutes}`;
-  };
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!session) return;
+    if (!session || !startDate || !endDate) return;
 
     setError(null);
 
-    // Validation: end_time must be after start_time
-    const start = new Date(startTime);
-    const end = new Date(endTime);
+    // Combine date and time
+    const startDateTime = new Date(startDate);
+    startDateTime.setHours(parseInt(startHour), parseInt(startMinute), 0, 0);
 
-    if (end <= start) {
+    const endDateTime = new Date(endDate);
+    endDateTime.setHours(parseInt(endHour), parseInt(endMinute), 0, 0);
+
+    // Validation: end_time must be after start_time
+    if (endDateTime <= startDateTime) {
       setError("Czas zakończenia musi być późniejszy niż czas rozpoczęcia");
       return;
     }
 
     // Validation: times cannot be in the future
     const now = new Date();
-    if (start > now || end > now) {
+    if (startDateTime > now || endDateTime > now) {
       setError("Nie można ustawić czasu w przyszłości");
       return;
     }
@@ -85,9 +84,9 @@ export function EditSessionModal({ isOpen, session, onClose, onSave }: EditSessi
 
     try {
       await onSave(session.id, {
-        start_time: start.toISOString(),
-        end_time: end.toISOString(),
-        timezone_offset: -start.getTimezoneOffset(), // Convert to minutes offset from UTC
+        start_time: startDateTime.toISOString(),
+        end_time: endDateTime.toISOString(),
+        timezone_offset: -startDateTime.getTimezoneOffset(), // Convert to minutes offset from UTC
       });
       onClose();
     } catch (err) {
@@ -111,33 +110,125 @@ export function EditSessionModal({ isOpen, session, onClose, onSave }: EditSessi
         <form onSubmit={handleSubmit}>
           <div className="space-y-6 py-6">
             <div className="space-y-3">
-              <Label htmlFor="start_time" className="text-sm font-semibold">
+              <Label htmlFor="start_date" className="text-sm font-semibold">
                 Czas rozpoczęcia
               </Label>
-              <Input
-                id="start_time"
-                type="datetime-local"
-                value={startTime}
-                onChange={(e) => setStartTime(e.target.value)}
-                max={getMaxDateTime()}
-                required
-                className="w-full text-base h-11 px-4"
-              />
+              <div className="flex gap-2">
+                <Popover open={startPopoverOpen} onOpenChange={setStartPopoverOpen}>
+                  <PopoverTrigger asChild>
+                    <Button
+                      variant="outline"
+                      className={cn(
+                        "w-[200px] justify-start text-left font-normal",
+                        !startDate && "text-muted-foreground"
+                      )}
+                    >
+                      <CalendarIcon className="mr-2 h-4 w-4" />
+                      {startDate?.toLocaleDateString("pl-PL") || "Wybierz datę"}
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0" align="start">
+                    <Calendar
+                      mode="single"
+                      selected={startDate}
+                      onSelect={(date) => {
+                        setStartDate(date);
+                        setStartPopoverOpen(false);
+                      }}
+                      disabled={(date) => date > new Date()}
+                      initialFocus
+                    />
+                  </PopoverContent>
+                </Popover>
+                <div className="flex gap-2">
+                  <Select value={startHour} onValueChange={setStartHour}>
+                    <SelectTrigger className="w-[80px]">
+                      <SelectValue placeholder="HH" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {Array.from({ length: 24 }, (_, i) => (
+                        <SelectItem key={i} value={String(i).padStart(2, "0")}>
+                          {String(i).padStart(2, "0")}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <span className="flex items-center">:</span>
+                  <Select value={startMinute} onValueChange={setStartMinute}>
+                    <SelectTrigger className="w-[80px]">
+                      <SelectValue placeholder="MM" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {Array.from({ length: 60 }, (_, i) => (
+                        <SelectItem key={i} value={String(i).padStart(2, "0")}>
+                          {String(i).padStart(2, "0")}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
             </div>
 
             <div className="space-y-3">
-              <Label htmlFor="end_time" className="text-sm font-semibold">
+              <Label htmlFor="end_date" className="text-sm font-semibold">
                 Czas zakończenia
               </Label>
-              <Input
-                id="end_time"
-                type="datetime-local"
-                value={endTime}
-                onChange={(e) => setEndTime(e.target.value)}
-                max={getMaxDateTime()}
-                required
-                className="w-full text-base h-11 px-4"
-              />
+              <div className="flex gap-2">
+                <Popover open={endPopoverOpen} onOpenChange={setEndPopoverOpen}>
+                  <PopoverTrigger asChild>
+                    <Button
+                      variant="outline"
+                      className={cn(
+                        "w-[200px] justify-start text-left font-normal",
+                        !endDate && "text-muted-foreground"
+                      )}
+                    >
+                      <CalendarIcon className="mr-2 h-4 w-4" />
+                      {endDate?.toLocaleDateString("pl-PL") || "Wybierz datę"}
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0" align="start">
+                    <Calendar
+                      mode="single"
+                      selected={endDate}
+                      onSelect={(date) => {
+                        setEndDate(date);
+                        setEndPopoverOpen(false);
+                      }}
+                      disabled={(date) => date > new Date()}
+                      initialFocus
+                    />
+                  </PopoverContent>
+                </Popover>
+                <div className="flex gap-2">
+                  <Select value={endHour} onValueChange={setEndHour}>
+                    <SelectTrigger className="w-[80px]">
+                      <SelectValue placeholder="HH" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {Array.from({ length: 24 }, (_, i) => (
+                        <SelectItem key={i} value={String(i).padStart(2, "0")}>
+                          {String(i).padStart(2, "0")}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <span className="flex items-center">:</span>
+                  <Select value={endMinute} onValueChange={setEndMinute}>
+                    <SelectTrigger className="w-[80px]">
+                      <SelectValue placeholder="MM" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {Array.from({ length: 60 }, (_, i) => (
+                        <SelectItem key={i} value={String(i).padStart(2, "0")}>
+                          {String(i).padStart(2, "0")}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
             </div>
 
             {error && (

@@ -180,7 +180,10 @@ export function SelectOrCreateTaskModal({
           {mode === "create" && (
             <div className="space-y-4">
               <div className="space-y-3">
-                <Label htmlFor="task-name">Nazwa zadania *</Label>
+                <div className="flex items-center justify-between">
+                  <Label htmlFor="task-name">Nazwa zadania *</Label>
+                  <span className="text-xs text-muted-foreground">{taskName.length} / 100</span>
+                </div>
                 <Input
                   id="task-name"
                   value={taskName}

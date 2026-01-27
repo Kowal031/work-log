@@ -145,11 +145,7 @@ export async function stopTimeEntry(
   }
 
   // Split the entry into daily entries (if crosses midnight)
-  const splitEntries = splitTimeEntryIntoDays(
-    currentEntry.start_time,
-    command.end_time,
-    command.timezone_offset
-  );
+  const splitEntries = splitTimeEntryIntoDays(currentEntry.start_time, command.end_time, command.timezone_offset);
 
   // Validate daily capacity for all affected days
   await validateDailyTimeCapacity(
