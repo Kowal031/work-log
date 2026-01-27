@@ -61,8 +61,9 @@ Endpoint **PATCH /api/tasks/{taskId}/time-entries/{timeEntryId}** umożliwia zal
 **UpdateTimeEntryRequestDto** - Struktura danych wejściowych:
 ```typescript
 interface UpdateTimeEntryRequestDto {
-  start_time?: string;  // ISO 8601 timestamp
-  end_time?: string;    // ISO 8601 timestamp
+  start_time?: string;      // ISO 8601 timestamp
+  end_time?: string;        // ISO 8601 timestamp
+  timezone_offset?: number; // Minutes offset from UTC (dla walidacji pojemności)
 }
 ```
 
@@ -82,10 +83,11 @@ type TimeEntryResponseDto = Omit<TimeEntry, "user_id" | "created_at">;
 **UpdateTimeEntryCommand** - Model dla warstwy serwisowej:
 ```typescript
 interface UpdateTimeEntryCommand {
-  user_id: string;       // UUID użytkownika z sesji
-  time_entry_id: string; // UUID time entry do edycji
-  start_time?: string;   // Opcjonalny nowy start_time
-  end_time?: string;     // Opcjonalny nowy end_time
+  user_id: string;          // UUID użytkownika z sesji
+  time_entry_id: string;    // UUID time entry do edycji
+  start_time?: string;      // Opcjonalny nowy start_time
+  end_time?: string;        // Opcjonalny nowy end_time
+  timezone_offset?: number; // Minutes offset from UTC (dla walidacji pojemności)
 }
 ```
 
@@ -160,6 +162,21 @@ Content-Type: application/json
 {
   "error": "BadRequest",
   "message": "End time must be after start time"
+}
+```
+
+**400 Bad Request** - Przekroczenie limitu 24h w dniu:
+```json
+{
+  "error": "DailyCapacityExceeded",
+  "message": "Przekroczono limit czasu dla dnia 2026-01-25. Wykorzystane: 12:00:00, Próba dodania: 14:00:00, Suma: 26:00:00 (Limit: 24:00:00)",
+  "details": {
+    "day": "2026-01-25",
+    "existing_duration_formatted": "12:00:00",
+    "new_duration_formatted": "14:00:00",
+    "total_duration_formatted": "26:00:00",
+    "limit": "24:00:00"
+  }
 }
 ```
 

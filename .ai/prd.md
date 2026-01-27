@@ -23,6 +23,8 @@ Podczas pracy zdalnej lub długotrwałej pracy przy komputerze trudno jest świa
 - F-04: Ręczna edycja czasu:
   - Możliwość ręcznej edycji istniejących wpisów czasowych (zmiana daty, godzin i minut trwania sesji).
   - Możliwość dodawania nowych wpisów czasowych z widoku podsumowań (wybór istniejącego zadania lub utworzenie nowego).
+  - Walidacja pojemności czasowej: system nie pozwala na dodanie lub edycję wpisu, jeśli spowodowałoby to przekroczenie 24 godzin w jednym dniu (w lokalnej strefie czasowej użytkownika).
+  - W przypadku przekroczenia limitu, użytkownik otrzymuje szczegółowy komunikat z informacją o dniu, już wykorzystanym czasie i próbie dodania.
 - F-05: Podsumowanie i historia:
   - Widok dziennego podsumowania zawierający listę zadań z łącznym czasem pracy w danym dniu oraz sumę wszystkich przepracowanych godzin.
   - Dostęp do historii pracy poprzez interfejs kalendarza, umożliwiający nawigację po poszczególnych dniach i miesiącach.
@@ -102,6 +104,8 @@ Następujące funkcjonalności nie wchodzą w zakres MVP i nie będą implemento
   - W modalu edycji zadania znajduje się lista wszystkich wpisów czasowych (sesji) dla tego zadania.
   - Każdy wpis na liście ma opcję "Edytuj".
   - Użytkownik może zmienić datę oraz czas trwania (godziny i minuty) danej sesji.
+  - System waliduje, że suma czasu dla każdego dnia (w lokalnej strefie czasowej) nie przekracza 24 godzin.
+  - Jeśli edycja spowodowałaby przekroczenie 24-godzinnego limitu dla jakiegokolwiek dnia, system wyświetla szczegółowy komunikat błędu ze wskazaniem problematycznego dnia.
   - Zmiany są zapisywane i wpływają na ogólne podsumowania czasu.
 
 - ID: US-007a
@@ -114,6 +118,8 @@ Następujące funkcjonalności nie wchodzą w zakres MVP i nie będą implemento
   - Po wyborze/utworzeniu zadania, automatycznie otwiera się modal do zarządzania sesjami czasowymi dla tego zadania.
   - W modalu sesji użytkownik może dodać nową sesję, podając datę, czas rozpoczęcia i zakończenia.
   - Walidacja: czas zakończenia musi być późniejszy niż czas rozpoczęcia.
+  - Walidacja: suma czasu dla każdego dnia nie może przekroczyć 24 godzin (w lokalnej strefie czasowej użytkownika).
+  - Jeśli dodanie sesji spowodowałoby przekroczenie limitu, system wyświetla szczegółowy komunikat błędu.
   - Po zapisaniu nowej sesji, podsumowanie dla wybranego dnia zostaje automatycznie odświeżone.
 
 - ID: US-008

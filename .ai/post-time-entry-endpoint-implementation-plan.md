@@ -32,13 +32,14 @@ Endpoint **POST /api/tasks/{taskId}/time-entries** umożliwia zalogowanym użytk
 
 - **Przykładowe żądania**:
   ```bash
-  # Utworzenie sesji 8-godzinnej
+  # Utworzenie sesji 8-godzinnej (użytkownik w Polsce, UTC+1)
   POST /api/tasks/550e8400-e29b-41d4-a716-446655440000/time-entries
   Content-Type: application/json
   
   {
     "start_time": "2026-01-27T09:00:00.000Z",
-    "end_time": "2026-01-27T17:00:00.000Z"
+    "end_time": "2026-01-27T17:00:00.000Z",
+    "timezone_offset": 60
   }
   
   # Utworzenie krótkiej sesji (1 godzina)
@@ -57,8 +58,9 @@ Endpoint **POST /api/tasks/{taskId}/time-entries** umożliwia zalogowanym użytk
 **CreateTimeEntryRequestDto** - Dane wejściowe:
 ```typescript
 interface CreateTimeEntryRequestDto {
-  start_time: string; // ISO 8601 timestamp
-  end_time: string;   // ISO 8601 timestamp
+  start_time: string; // ISO 8601 timestamp (UTC)
+  end_time: string;   // ISO 8601 timestamp (UTC)
+  timezone_offset: number; // Offset strefy czasowej w minutach (np. 60 dla UTC+1)
 }
 ```
 
@@ -128,6 +130,21 @@ Location: /api/tasks/550e8400-e29b-41d4-a716-446655440000/time-entries/770e8400-
 {
   "error": "BadRequest",
   "message": "Times cannot be in the future"
+}
+```
+
+**400 Bad Request** - Przekroczenie limitu 24h w dniu:
+```json
+{
+  "error": "DailyCapacityExceeded",
+  "message": "Przekroczono limit czasu dla dnia 2026-01-25. Wykorzystane: 12:00:00, Próba dodania: 14:00:00, Suma: 26:00:00 (Limit: 24:00:00)",
+  "details": {
+    "day": "2026-01-25",
+    "existing_duration_formatted": "12:00:00",
+    "new_duration_formatted": "14:00:00",
+    "total_duration_formatted": "26:00:00",
+    "limit": "24:00:00"
+  }
 }
 ```
 
@@ -236,6 +253,45 @@ Location: /api/tasks/550e8400-e29b-41d4-a716-446655440000/time-entries/770e8400-
 │  (src/lib/services/time-entry.service.ts)│
 │                                          │
 │  - Execute createTimeEntry()            │
+│  - Split entry if crosses midnight      │
+│  - Validate daily capacity (24h limit)  │
+└──────┬──────────────────────────────────┘
+       │
+       ▼
+┌─────────────────────────────────────────┐
+│  Midnight Splitting Logic                │
+│                                          │
+│  IF entry crosses midnight in user's    │
+│  timezone (using timezone_offset):      │
+│                                          │
+│  1. Calculate midnight in user timezone │
+│  2. Split into multiple entries:        │
+│     - Entry 1: start_time → midnight    │
+│     - Entry 2: midnight → next day...   │
+│  3. Each split preserves task_id        │
+│                                          │
+│  Example:                               │
+│  Input: 23:00 (Day1) → 02:00 (Day2)    │
+│  Output:                                │
+│    - 23:00 → 00:00 (Day1)              │
+│    - 00:00 → 02:00 (Day2)              │
+└──────┬──────────────────────────────────┘
+       │
+       ▼
+┌─────────────────────────────────────────┐
+│  Daily Capacity Validation               │
+│                                          │
+│  FOR EACH split entry:                  │
+│  1. Get all time_entries for that day   │
+│     (using user's timezone)             │
+│  2. Sum existing durations              │
+│  3. Add new entry duration              │
+│  4. IF total > 24h:                     │
+│     - Throw DailyCapacityExceededError  │
+│     - Return 400 with details           │
+│                                          │
+│  Note: Excludes active timers           │
+│  (entries with end_time = NULL)         │
 └──────┬──────────────────────────────────┘
        │
        ▼
@@ -250,6 +306,7 @@ Location: /api/tasks/550e8400-e29b-41d4-a716-446655440000/time-entries/770e8400-
 │            end_time                     │
 │                                          │
 │  - RLS Policy ensures user_id match    │
+│  - May insert multiple rows if split   │
 └──────┬──────────────────────────────────┘
        │
        ▼
@@ -283,6 +340,33 @@ At any stage, if an error occurs:
 4. Build ErrorResponseDto
 5. Return error response to client
 ```
+
+## 5a. Timezone Handling i Midnight Splitting
+
+### Przegląd
+
+Endpoint obsługuje wpisy czasowe rozciągające się przez wiele dni w lokalnej strefie czasowej użytkownika. Kluczowe mechanizmy:
+
+1. **Timezone Offset**: Client przekazuje `timezone_offset` w minutach od UTC (np. `60` dla UTC+1, `-300` dla UTC-5)
+2. **Midnight Detection**: Serwer wykrywa czy wpis przekracza północ w lokalnej strefie użytkownika
+3. **Automatic Splitting**: Wpis jest automatycznie dzielony na osobne wpisy dla każdego dnia
+
+### Timezone Edge Cases
+
+**Case: User w różnych strefach czasowych**
+- Każdy request może mieć inny timezone_offset
+- Splitting bazuje na timezone_offset z danego requestu
+- Historyczne wpisy nie są przeliczane
+
+**Case: Daylight Saving Time (DST)**
+- Client odpowiada za poprawny timezone_offset
+- Serwer nie zna lokalnych zasad DST
+- Offset może się zmieniać (np. +60 w zimie, +120 w lecie)
+
+**Case: Wpisy UTC vs Local**
+- Wszystkie czasy w bazie danych w UTC (ISO 8601 z 'Z')
+- Splitting używa timezone_offset do wykrywania midnight w lokalnej strefie
+- Frontend odpowiada za konwersję wyświetlanych czasów
 
 ## 6. Względy bezpieczeństwa
 

@@ -32,7 +32,7 @@ This table should be managed by Supbase Auth
 
 ### Widok i funkcja pomocnicza
 - active_task_details (VIEW): łączy `tasks` z `time_entries` i zwraca wiersze z `end_time IS NULL`
-- get_daily_summary(p_user_id uuid, p_date date) RETURNS TABLE (task_id uuid, task_name varchar(255), total_duration interval): sumuje `COALESCE(end_time, now()) - start_time` dla danego dnia, grupując po zadaniu i filtrując po `user_id`.
+- get_daily_summary(p_user_id uuid, p_date date, p_timezone_offset_minutes integer DEFAULT 0) RETURNS TABLE (task_id uuid, task_name varchar(255), total_duration interval): sumuje `COALESCE(end_time, now()) - start_time` dla danego lokalnego dnia użytkownika (z uwzględnieniem strefy czasowej), grupując po zadaniu i filtrując po `user_id`. Filtruje sesje, które rozpoczęły się lub zakończyły w danym lokalnym dniu.
 
 ## 2. Relacje między tabelami
 - `auth.users` (Supabase) 1 => N `tasks` (więcej zadań na użytkownika) przez `user_id`.
@@ -58,3 +58,4 @@ This table should be managed by Supbase Auth
 - Użycie `timestamptz` dla wszystkich znaczników czasu jest zgodne z najlepszymi praktykami.
 - Funkcja `get_daily_summary` upraszcza logikę po stronie klienta.
 - Widok `active_task_details` pomaga w zarządzaniu aktywnymi zadaniami.
+- Walidacja pojemności czasowej dnia (24h limit): Implementowana w warstwie aplikacji (nie w bazie danych). System zapobiega dodawaniu lub edycji wpisów czasowych, które spowodowałyby przekroczenie 24 godzin w jednym dniu lokalnym użytkownika. Walidacja uwzględnia strefę czasową użytkownika i jest wykonywana przed zapisem do bazy.

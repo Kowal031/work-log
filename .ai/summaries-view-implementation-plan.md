@@ -161,6 +161,10 @@ Logika pobierania danych oraz zarządzanie stanem zostaną wyizolowane w dedykow
 - **Brak autoryzacji (401):** Hook `useDailySummary` ustawi stan błędu. Komponent `SummariesView` wyświetli komunikat "Wymagana autoryzacja. Proszę się zalogować." z linkiem do strony logowania.
 - **Błąd serwera (500) lub sieci:** Hook ustawi stan błędu. Komponent `SummariesView` wyświetli ogólny komunikat, np. "Nie udało się załadować podsumowania. Spróbuj ponownie później."
 - **Brak danych (pusta tablica `tasks`):** Komponent `SummaryTaskList` wyświetli komunikat "Nie zarejestrowano czasu pracy w tym dniu." Karta `SummaryHeroCard` pokaże "0h 0m".
+- **Walidacja pojemności czasowej (DailyCapacityExceeded):** Przy dodawaniu lub edycji sesji czasowych, jeśli operacja przekroczyłaby limit 24h dla jakiegokolwiek dnia:
+  - Wyświetlenie toasta z błędem (7 sekund)
+  - Komunikat w języku polskim ze szczegółami: dzień, wykorzystany czas, próba dodania, suma, limit
+  - Użytkownik może poprawić dane i spróbować ponownie
 
 ## 11. Kroki implementacji
 1.  **Utworzenie struktury plików:**
@@ -225,11 +229,20 @@ Zgodnie z `US-007`, użytkownik musi mieć możliwość edycji istniejących wpi
 
 #### `EditSessionModal.tsx` (Reużycie)
 - **Opis komponentu:** Modal do edycji pojedynczej sesji czasowej. Powinien być gotowy do użycia bez większych zmian.
+- **Walidacja:** 
+  - end_time > start_time
+  - Czasy nie mogą być w przyszłości
+  - **Walidacja pojemności czasowej:** Sprawdzenie czy edycja nie spowoduje przekroczenia 24h limitu w żadnym z dotyczących dni
+  - Błąd walidacji wyświetlany jako toast z szczegółowymi informacjami
 
 ### 12.4. Integracja API
 - `GET /api/tasks/{taskId}/time-entries?date=YYYY-MM-DD`: Pobranie sesji dla zadania z danego dnia.
-- `PATCH /api/tasks/{taskId}/time-entries/{timeEntryId}`: Aktualizacja sesji.
+- `PATCH /api/tasks/{taskId}/time-entries/{timeEntryId}`: Aktualizacja sesji (z parametrem `timezone_offset` dla walidacji pojemności).
 - `DELETE /api/tasks/{taskId}/time-entries/{timeEntryId}`: Usunięcie sesji.
+- **Obsługa błędów:**
+  - `400 Bad Request` z kodem `DailyCapacityExceeded`: Toast z szczegółowym komunikatem o przekroczeniu limitu 24h dla konkretnego dnia
+  - Wyświetlenie informacji: dzień, już wykorzystany czas, próba dodania, suma, limit (24:00:00)
+  - Czas wyświetlania toasta: 7 sekund
 
 ## 13. Ręczne Dodawanie Czasu (Faza 3)
 
@@ -298,11 +311,16 @@ Użytkownik powinien mieć możliwość ręcznego dodania wpisu czasowego dla do
     - Wszystkie pola wymagane
     - end_time > start_time
     - Czasy nie mogą być w przyszłości
+    - **Walidacja pojemności czasowej:** System sprawdza czy dodanie wpisu nie spowoduje przekroczenia 24h w żadnym z dotyczących dni (w strefie czasowej użytkownika)
+    - W przypadku przekroczenia limitu wyświetlany jest toast z błędem zawierający szczegółowe informacje (dzień, wykorzystany czas, próba dodania, suma)
 
 ### 13.4. Integracja API
 - `GET /api/tasks?status=active`: Pobranie listy aktywnych zadań do wyboru w modalu.
 - `POST /api/tasks`: Utworzenie nowego zadania.
-- `POST /api/tasks/{taskId}/time-entries`: Utworzenie nowego wpisu czasowego.
+- `POST /api/tasks/{taskId}/time-entries`: Utworzenie nowego wpisu czasowego (z parametrem `timezone_offset` dla walidacji pojemności).
+- **Obsługa błędów:**
+  - `400 Bad Request` z kodem `DailyCapacityExceeded`: Wyświetlenie toasta z szczegółowym komunikatem o przekroczeniu 24h limitu (7 sekund, informacje o dniu, wykorzystanym czasie, próbie dodania)
+  - Inne błędy: Ogólny toast z komunikatem błędu
 
 ### 13.5. Przepływ użytkownika
 1. Summaries → Kliknięcie "+ Dodaj czas"

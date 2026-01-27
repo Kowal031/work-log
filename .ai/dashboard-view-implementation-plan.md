@@ -220,22 +220,27 @@ DashboardView (React) ✅
 - **Status**: ✅ Ukończone
 
 ### EditSessionModal - ✅ ZREALIZOWANE (nie w oryginalnym planie)
-- **Opis komponentu**: Modal do edycji pojedynczej sesji czasowej (start_time, end_time).
+- **Opis komponentu**: Modal do edycji pojedynczej sesji czasowej (start_time, end_time). Obsługuje timezone-aware zapisywanie zmian.
 - **Główne elementy**: `Dialog` (Shadcn/ui) ✅, dwa datetime-local inputs ✅, walidacja ✅.
 - **Obsługiwane interakcje**:
-  - `onSave`: Zapisuje zaktualizowane czasy sesji ✅
+  - `onSave`: Zapisuje zaktualizowane czasy sesji wraz z `timezone_offset` ✅
   - `onClose`: Zamyka modal ✅
 - **Warunki walidacji**:
   - `end_time > start_time` ✅
   - Brak przyszłych dat (max=current datetime) ✅
   - Format bez sekund w UI (YYYY-MM-DDTHH:mm) ✅
+  - Walidacja limitu 24h dla dnia (przekazywana do backendu) ✅
 - **Typy**: `TimeEntry` ✅
 - **Propsy**:
   - `isOpen: boolean` ✅
   - `session: TimeEntry | null` ✅
   - `onClose: () => void` ✅
-  - `onSave: (sessionId: string, updates: { start_time: string; end_time: string }) => void` ✅
-- **Status**: ✅ Ukończone (dodatkowy komponent, bardzo przydatny)
+  - `onSave: (sessionId: string, updates: { start_time: string; end_time: string; timezone_offset: number }) => void` ✅
+- **Timezone Handling**:
+  - Oblicza `timezone_offset` z lokalnej strefy użytkownika: `-start.getTimezoneOffset()` ✅
+  - Przekazuje offset do API w strukturze updates ✅
+  - Backend używa offsetu do splitting i walidacji limitu 24h ✅
+- **Status**: ✅ Ukończone (dodatkowy komponent z timezone support)
 
 ## 5. Typy
 
@@ -337,8 +342,12 @@ Stan zarządzany jest przez custom hook `useDashboardState.ts` z następującymi
 
 - **`PATCH /api/tasks/{taskId}/time-entries/{timeEntryId}`**: ✅
   - **Akcja**: Ręczna edycja sesji czasowej (z Recovery Modal lub Edit Modal).
-  - **Żądanie**: `UpdateTimeEntryRequestDto` (`start_time`, `end_time`).
+  - **Żądanie**: `UpdateTimeEntryRequestDto` (`start_time`, `end_time`, `timezone_offset`).
   - **Odpowiedź**: `TimeEntryResponseDto`.
+  - **Timezone Handling**: 
+    - Frontend przekazuje `timezone_offset` (liczba minut od UTC) ✅
+    - Backend splituje wpisy przekraczające midnight w lokalnej strefie użytkownika ✅
+    - Backend waliduje limit 24h dla każdego dnia (DailyCapacityExceededError) ✅
 
 - **`DELETE /api/tasks/{taskId}/time-entries/{timeEntryId}`**: ✅ (dodane, nie w planie)
   - **Akcja**: Usunięcie sesji czasowej (używane w Recovery Modal "Odrzuć sesję").

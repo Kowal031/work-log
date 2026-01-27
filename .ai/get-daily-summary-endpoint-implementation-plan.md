@@ -19,17 +19,18 @@ Endpoint **GET /api/summary/daily** umożliwia zalogowanym użytkownikom uzyskan
 - **Headers**:
   - `Authorization: Bearer <token>` (obsługiwane przez Supabase Auth via cookies/headers)
   
-- **Query Parameters** (wszystkie opcjonalne):
-  - `date_from` (string, ISO 8601 date): Data początkowa (domyślnie: dzisiaj 00:00)
-  - `date_to` (string, ISO 8601 date): Data końcowa (domyślnie: dzisiaj 23:59)
+- **Query Parameters**:
+  - `date_from` (string, ISO 8601 date, optional): Data początkowa (domyślnie: dzisiaj 00:00)
+  - `date_to` (string, ISO 8601 date, optional): Data końcowa (domyślnie: dzisiaj 23:59)
+  - `timezone_offset` (number, required): Offset strefy czasowej w minutach od UTC (np. 60 dla UTC+1, -300 dla UTC-5)
 
 - **Przykładowe żądania**:
   ```bash
-  # Raport z dzisiaj (domyślnie)
-  GET /api/summary/daily
+  # Raport z dzisiaj (domyślnie) dla użytkownika w Polsce (UTC+1)
+  GET /api/summary/daily?timezone_offset=60
   
   # Raport z konkretnego dnia
-  GET /api/summary/daily?date_from=2026-01-25&date_to=2026-01-25
+  GET /api/summary/daily?date_from=2026-01-25&date_to=2026-01-25&timezone_offset=60
   
   # Raport z zakresu dat (tydzień)
   GET /api/summary/daily?date_from=2026-01-20&date_to=2026-01-26
@@ -72,6 +73,7 @@ interface TaskSummaryDto {
 interface DailySummaryQueryDto {
   date_from?: string; // ISO 8601 date (YYYY-MM-DD)
   date_to?: string;   // ISO 8601 date (YYYY-MM-DD)
+  timezone_offset: number; // Offset strefy czasowej w minutach (np. 60 dla UTC+1)
 }
 ```
 

@@ -103,6 +103,8 @@ Aplikacja WorkLog posiada prostą, dwuwarstwową architekturę interfejsu użytk
   - Collapsible dla sesji
   - Responsywność: date picker jako drawer na mobile
   - Focus management
+  - Walidacja pojemności czasowej: toast z błędem gdy próba dodania/edycji przekroczyłaby 24h w dniu
+  - Szczegółowe komunikaty błędów z informacją o dniu i czasie
 
 ## 3. Mapa podróży użytkownika
 
@@ -197,9 +199,9 @@ Register ───────────> Dashboard
 ### 5.3 Modals & Dialogs
 - **Create Task Modal** - Formularz tworzenia zadania
 - **Edit Task Modal** - Edycja szczegółów zadania i przegląd historii sesji
-- **Edit Time Entry Modal** - Edycja pojedynczej sesji czasowej
+- **Edit Time Entry Modal** - Edycja pojedynczej sesji czasowej (z walidacją 24h limitu)
 - **Select Or Create Task Modal** - Wybór istniejącego zadania lub utworzenie nowego (w Summaries)
-- **Add Time Entry Modal** - Dodawanie nowej sesji czasowej z datą, start i end time
+- **Add Time Entry Modal** - Dodawanie nowej sesji czasowej z datą, start i end time (z walidacją 24h limitu)
 - **Recovery Modal** - Obsługa aktywnego timera przy starcie aplikacji
 - **Confirmation Dialogs** - Potwierdzenia dla destructive actions (Complete, Delete)
 - **Conflict Modal** - Obsługa konfliktu aktywnych timerów
@@ -214,6 +216,9 @@ Register ───────────> Dashboard
 - **Empty State** - Komunikat i CTA gdy brak danych
 - **Loading Indicator** - Spinner podczas żądań API
 - **Toast Notifications** - Feedback dla akcji użytkownika (błędy, sukcesy)
+  - Błędy walidacji (np. przekroczenie 24h limitu) - 7 sekund, szczegółowe informacje
+  - Sukcesy - krótki czas wyświetlania
+  - Błędy API - z informacją o problemie
 - **Status Indicators** - Pulsująca kropka dla aktywnego timera
 
 ### 5.6 Forms & Inputs
@@ -234,6 +239,7 @@ Register ───────────> Dashboard
 - Lazy loading dla modali
 - State management dla globalnego stanu (activeTimer, tasks)
 - Error handling z rollback i toast notifications
+- Walidacja pojemności czasowej dnia (24h limit) z user-friendly komunikatami
 - Authentication przez JWT middleware
 - Responsive design (mobile-first)
 - Accessibility (ARIA, semantic HTML, keyboard navigation)

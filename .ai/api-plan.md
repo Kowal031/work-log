@@ -151,12 +151,13 @@
   - **Errors**: `401 Unauthorized`, `404 Not Found`
 
 - **POST** `/api/tasks/{taskId}/time-entries`
-  - **Description**: Manually creates a new time entry for a task with specified start and end times.
+  - **Description**: Manually creates a new time entry for a task with specified start and end times. Sessions crossing midnight are automatically split based on user's timezone.
   - **Request Body**:
     ```json
     {
-      "start_time": "timestamp",
-      "end_time": "timestamp"
+      "start_time": "2026-01-27T09:00:00.000Z",
+      "end_time": "2026-01-27T17:00:00.000Z",
+      "timezone_offset": 60
     }
     ```
   - **Response Body**:
@@ -169,7 +170,12 @@
     }
     ```
   - **Success**: `201 Created`
-  - **Errors**: `400 Bad Request` (Validation: end_time > start_time, no future times), `401 Unauthorized`, `404 Not Found`
+  - **Errors**: 
+    - `400 Bad Request` (Validation: end_time > start_time, no future times, invalid timezone_offset)
+    - `400 Bad Request` with error code `DailyCapacityExceeded` (Total time for a day exceeds 24 hours)
+    - `401 Unauthorized`
+    - `404 Not Found`
+  - **Note**: If the time entry spans multiple days in the user's timezone, it will be automatically split into separate entries for each day.
 
 - **PATCH** `/api/tasks/{taskId}/time-entries/{timeEntryId}`
   - **Description**: Manually edits an existing time entry.
@@ -177,7 +183,8 @@
     ```json
     {
       "start_time": "new-start-timestamp",
-      "end_time": "new-end-timestamp"
+      "end_time": "new-end-timestamp",
+      "timezone_offset": 60
     }
     ```
   - **Response Body**:
@@ -190,30 +197,43 @@
     }
     ```
   - **Success**: `200 OK`
-  - **Errors**: `400 Bad Request` (Validation: end_time > start_time), `401 Unauthorized`, `404 Not Found`
+  - **Errors**: 
+    - `400 Bad Request` (Validation: end_time > start_time)
+    - `400 Bad Request` with error code `DailyCapacityExceeded` (Total time for a day exceeds 24 hours)
+    - `401 Unauthorized`
+    - `404 Not Found`
+    - `409 Conflict` (Cannot edit active timer)
 
 ### Summaries
 
 - **GET** `/api/summary/daily`
-  - **Description**: Gets the daily work summary for a specific date.
+  - **Description**: Gets the daily work summary for a specific date range, considering user's timezone.
   - **Query Parameters**:
-    - `date` (required, format: 'YYYY-MM-DD'): The date for the summary.
+    - `date_from` (optional, format: 'YYYY-MM-DD'): Start date for the summary (defaults to today).
+    - `date_to` (optional, format: 'YYYY-MM-DD'): End date for the summary (defaults to today).
+    - `timezone_offset` (required, number): Timezone offset in minutes from UTC (e.g., 60 for UTC+1, -300 for UTC-5).
   - **Response Body**:
     ```json
     {
-      "date": "YYYY-MM-DD",
-      "total_duration": "HH:MM:SS",
+      "date_from": "2026-01-25T00:00:00.000Z",
+      "date_to": "2026-01-25T23:59:59.999Z",
+      "total_duration_seconds": 14400,
+      "total_duration_formatted": "04:00:00",
       "tasks": [
         {
           "task_id": "uuid",
           "task_name": "Task Name",
-          "total_duration": "HH:MM:SS"
+          "task_status": "active",
+          "duration_seconds": 14400,
+          "duration_formatted": "04:00:00",
+          "entries_count": 3
         }
       ]
     }
     ```
   - **Success**: `200 OK`
-  - **Errors**: `400 Bad Request` (Invalid date format), `401 Unauthorized`
+  - **Errors**: `400 Bad Request` (Invalid date format or timezone offset), `401 Unauthorized`
+  - **Note**: The endpoint filters entries based on the user's local date (using timezone_offset), not UTC date. Sessions spanning multiple days are correctly attributed to each day.
 
 - **GET** `/api/tasks/active-timer`
   - **Description**: Checks if there is any active timer for the user upon app startup.
@@ -252,3 +272,9 @@
 - **No Edits on Active Tasks**: The `PATCH /api/tasks/{taskId}` endpoint will prevent updates to a task if it has an active timer. It will query for an active `time_entry` associated with the `taskId` before allowing the update.
 - **Daily Summary Calculation**: The `GET /api/summary/daily` endpoint will use the `get_daily_summary` PostgreSQL function defined in the DB plan to efficiently calculate total work duration per task for a given day.
 - **Active Timer Recovery**: The `GET /api/tasks/active-timer` endpoint allows the frontend to check for an unfinished session when the application starts, fulfilling requirement F-06 from the PRD. The frontend will then be responsible for presenting the user with recovery options.
+- **Daily Time Capacity Validation**: When creating or editing time entries (`POST /api/tasks/{taskId}/time-entries` and `PATCH /api/tasks/{taskId}/time-entries/{timeEntryId}`), the API validates that the total time for any given day (in user's timezone) does not exceed 24 hours. This validation:
+  - Considers all completed time entries (active timers are excluded)
+  - Checks each day affected by the new/edited entry
+  - When editing, excludes the current entry from existing time calculations
+  - Returns `400 Bad Request` with error code `DailyCapacityExceeded` and detailed information (day, existing time, new time, total, limit) if validation fails
+  - Uses the `timezone_offset` parameter to correctly determine local days
