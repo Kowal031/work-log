@@ -47,7 +47,7 @@
 - ✅ `handleCreateTask` - tworzenie zadania z toast
 - ✅ `handleEditTask` - edycja zadania z toast
 - ✅ `handleStartTimer` - start timera z toast, obsługa 409 Conflict
-- ✅ `handleStopTimer` - stop timera z toast
+- ✅ `handleStopTimer` - stop timera z obsługą błędów DailyCapacityExceeded poprzez modal CapacityExceededModal
 - ✅ Instant UI feedback z rollback przy błędach
 
 #### 7. Obsługa błędów

@@ -74,11 +74,20 @@ Zaimplementowano kompletną walidację pojemności czasowej dnia, która zapobie
 - ✅ Polskie komunikaty w toast (7 sekund)
 - ✅ Szczegółowe informacje: dzień, wykorzystany czas, nowy czas, suma, limit
 
-**Plik:** `src/components/dashboard/DashboardView.tsx`
-- ✅ `handleStopTimer` wysyła `timezone_offset`
-- ✅ `handleStopTimer` wykrywa i wyświetla błąd `DailyCapacityExceeded`
-- ✅ Polskie komunikaty w toast (7 sekund)
-- ✅ Szczegółowe informacje: dzień, wykorzystany czas, nowy czas, suma, limit
+**Plik:** `src/components/dashboard/CapacityExceededModal.tsx`
+- ✅ Nowy komponent modalny dla błędów przekroczenia pojemności
+- ✅ Wyświetla szczegóły błędu: dzień, wykorzystany czas, czas sesji, suma, limit
+- ✅ Pokazuje żywy licznik czasu podczas wyświetlania modalu
+- ✅ Oferuje dwie opcje: "Skoryguj ręcznie", "Odrzuć sesję"
+- ✅ Integruje się z `useDashboardState` dla zarządzania stanem modalu
+- ✅ Używa `AlertDialog` z Shadcn/ui dla spójnego designu
+
+### 5. State Management ✅
+
+**Plik:** `src/components/dashboard/hooks/useDashboardState.ts`
+- ✅ Dodano stan `isCapacityExceededModalOpen` i `capacityExceededError`
+- ✅ Funkcje `openCapacityExceededModal` i `closeCapacityExceededModal`
+- ✅ Handlery `handleCapacityExceededDiscard` i `handleCapacityExceededManualCorrect`
 
 ### 4. Dokumentacja ✅
 
@@ -96,7 +105,7 @@ Zaimplementowano kompletną walidację pojemności czasowej dnia, która zapobie
 ✅ **Obsługuje sesje wielodniowe** - Waliduje każdy dotknięty dzień osobno  
 ✅ **Wyklucza edytowany wpis** - Przy edycji nie liczy starej wersji  
 ✅ **Szczegółowe komunikaty błędów** - Pokazuje dzień, wykorzystany czas, nowy czas, sumę i limit  
-✅ **User-friendly UI** - Polskie toasty z 7-sekundowym wyświetlaniem  
+✅ **User-friendly UI** - Modal CapacityExceededModal z opcjami zamiast prostych toastów, polski interfejs z żywym licznikiem czasu  
 ✅ **Proper TypeScript typing** - Brak użycia `any`, interfejs `ExtendedError`
 
 ## Algorytm walidacji

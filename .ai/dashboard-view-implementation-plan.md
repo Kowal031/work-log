@@ -26,6 +26,7 @@ DashboardView (React) ✅
 │   ├── TaskForm (React) ✅
 │   ├── SessionHistoryList (React) ✅
 │   └── EditSessionModal (React) ✅ [dodatkowy komponent, nie w planie]
+├── CapacityExceededModal (React) ✅ [dodany dla obsługi błędów przekroczenia pojemności]
 └── CompleteConfirmationDialog (React) ✅
 ```
 
@@ -167,6 +168,24 @@ DashboardView (React) ✅
   - `onCancel: () => void` ✅
 - **Status**: ✅ Ukończone
 
+### CapacityExceededModal - ✅ ZREALIZOWANE
+- **Opis komponentu**: Modal wyświetlany gdy zatrzymanie timera spowodowałoby przekroczenie dziennego limitu 24 godzin. Pokazuje szczegóły błędu i oferuje użytkownikowi opcje działania.
+- **Główne elementy**: `AlertDialog` (Shadcn/ui) ✅, szczegóły błędu (dzień, wykorzystany czas, czas sesji, suma) ✅, żywy licznik czasu ✅, trzy przyciski akcji ✅.
+- **Obsługiwane interakcje**:
+  - `onManualCorrect`: Otwiera modal edycji sesji do ręcznej korekty ✅
+  - `onDiscard`: Odrzuca całą sesję (DELETE) ✅
+- **Warunki walidacji**: Brak.
+- **Typy**: `ExtendedError` (z details zawierającymi informacje o błędzie) ✅.
+- **Propsy**:
+  - `isOpen: boolean` ✅
+  - `error: ExtendedError | null` ✅
+  - `activeTimer: ActiveTimerViewModel` ✅
+  - `onSaveAll: () => void` ✅
+  - `onManualCorrect: () => void` ✅
+  - `onDiscard: () => void` ✅
+  - `onClose: () => void` ✅
+- **Status**: ✅ Ukończone z żywym licznikiem i polskimi komunikatami
+
 ### CreateTaskModal - ✅ ZREALIZOWANE
 - **Opis komponentu**: Modal do tworzenia nowego zadania.
 - **Główne elementy**: `Dialog` (Shadcn/ui) ✅, `DialogHeader` ✅, `TaskForm` ✅.
@@ -304,6 +323,9 @@ Stan zarządzany jest przez custom hook `useDashboardState.ts` z następującymi
 - **`isCompleteModalOpen`**: `useState<boolean>(false)` - widoczność Complete Modal ✅
 - **`taskToComplete`**: `useState<TaskViewModel | null>(null)` - zadanie do ukończenia ✅
 - **`openCompleteModal`**, **`closeCompleteModal`**: funkcje zarządzania Complete Modal ✅
+- **`isCapacityExceededModalOpen`**: `useState<boolean>(false)` - widoczność Capacity Exceeded Modal ✅
+- **`capacityExceededError`**: `useState<ExtendedError | null>(null)` - błąd przekroczenia pojemności ✅
+- **`openCapacityExceededModal`**, **`closeCapacityExceededModal`**: funkcje zarządzania Capacity Exceeded Modal ✅
 
 **Optymalizacje**: Wszystkie funkcje wrapped w `useCallback` ✅
 
@@ -338,7 +360,9 @@ Stan zarządzany jest przez custom hook `useDashboardState.ts` z następującymi
 
 - **`POST /api/tasks/{taskId}/time-entries/{timeEntryId}/stop`**: ✅
   - **Akcja**: Zatrzymanie aktywnego licznika.
+  - **Żądanie**: `StopTimeEntryCommand` (z `timezone_offset`).
   - **Odpowiedź**: `TimeEntryResponseDto`.
+  - **Błąd 400**: `DailyCapacityExceeded` - otwiera CapacityExceededModal zamiast toastu.
 
 - **`PATCH /api/tasks/{taskId}/time-entries/{timeEntryId}`**: ✅
   - **Akcja**: Ręczna edycja sesji czasowej (z Recovery Modal lub Edit Modal).

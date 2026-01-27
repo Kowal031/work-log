@@ -80,7 +80,7 @@ Następujące funkcjonalności nie wchodzą w zakres MVP i nie będą implemento
   - W danym momencie czas może być mierzony tylko dla jednego zadania. Próba uruchomienia drugiego licznika jest niemożliwa lub powoduje zatrzymanie poprzedniego.
   - Po kliknięciu "Stop", system waliduje czy zatrzymanie licznika nie spowoduje przekroczenia 24-godzinnego limitu dla któregokolwiek dnia (w lokalnej strefie czasowej użytkownika).
   - Jeśli walidacja przejdzie pomyślnie, licznik zatrzymuje się i system tworzy nowy wpis czasowy (sesję) powiązany z zadaniem i czasem trwania.
-  - Jeśli zatrzymanie licznika spowodowałoby przekroczenie limitu, system wyświetla szczegółowy komunikat błędu z informacją o problematycznym dniu, już wykorzystanym czasie, czasie sesji i łącznym czasie. Licznik pozostaje aktywny.
+  - Jeśli zatrzymanie licznika spowodowałoby przekroczenie limitu, system wyświetla modal z szczegółowymi informacjami o błędzie (dzień, już wykorzystany czas, czas sesji, łączny czas) oraz opcjami: "Zapisz cały czas" (bez tej opcji), "Skoryguj ręcznie", "Odrzuć sesję". Licznik pozostaje aktywny.
 
 - ID: US-005
 - Tytuł: Pauzowanie i wznawianie licznika czasu
