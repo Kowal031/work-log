@@ -4,6 +4,7 @@ import type { ErrorResponseDto, TimeEntryResponseDto, UpdateTimeEntryCommand } f
 import type { APIRoute } from "astro";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@/db/database.types";
+import { DailyCapacityExceededError } from "@/lib/errors/time-entry.errors";
 
 import { ZodError } from "zod";
 
@@ -129,6 +130,7 @@ export const PATCH: APIRoute = async ({ params, request, locals }) => {
     time_entry_id: timeEntryId,
     start_time: validatedData.start_time,
     end_time: validatedData.end_time,
+    timezone_offset: validatedData.timezone_offset,
   };
 
   // Step 6: Call service layer to update the time entry
@@ -144,6 +146,24 @@ export const PATCH: APIRoute = async ({ params, request, locals }) => {
     });
   } catch (error) {
     // Handle specific business logic errors
+    if (error instanceof DailyCapacityExceededError) {
+      const errorResponse: ErrorResponseDto = {
+        error: "DailyCapacityExceeded",
+        message: error.message,
+        details: {
+          day: error.day,
+          existing_duration_formatted: error.existingFormatted,
+          new_duration_formatted: error.newFormatted,
+          total_duration_formatted: error.totalFormatted,
+          limit: "24:00:00",
+        },
+      };
+      return new Response(JSON.stringify(errorResponse), {
+        status: 400,
+        headers: { "Content-Type": "application/json" },
+      });
+    }
+
     if (error instanceof Error) {
       if (error.message === "TIME_ENTRY_NOT_FOUND") {
         const errorResponse: ErrorResponseDto = {
@@ -286,4 +306,3 @@ export const DELETE: APIRoute = async ({ params, locals }) => {
     status: 204,
   });
 };
-

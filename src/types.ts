@@ -128,6 +128,7 @@ export type TimeEntryResponseDto = Omit<TimeEntry, "user_id" | "created_at">;
 export interface UpdateTimeEntryRequestDto {
   start_time?: string;
   end_time?: string;
+  timezone_offset?: number; // Minutes offset from UTC (for capacity validation)
 }
 
 /**
@@ -137,6 +138,7 @@ export interface UpdateTimeEntryRequestDto {
 export interface CreateTimeEntryRequestDto {
   start_time: string;
   end_time: string;
+  timezone_offset: number; // Minutes offset from UTC (e.g., -60 for UTC+1)
 }
 
 /**
@@ -232,6 +234,7 @@ export interface StopTimeEntryCommand {
   task_id: string;
   time_entry_id: string;
   end_time: string;
+  timezone_offset: number; // Minutes offset from UTC (for capacity validation)
 }
 
 /**
@@ -244,6 +247,7 @@ export interface UpdateTimeEntryCommand {
   time_entry_id: string;
   start_time?: string;
   end_time?: string;
+  timezone_offset?: number; // Minutes offset from UTC (for capacity validation)
 }
 
 /**
@@ -255,6 +259,7 @@ export interface CreateTimeEntryCommand {
   task_id: string;
   start_time: string;
   end_time: string;
+  timezone_offset: number; // Minutes offset from UTC (e.g., -60 for UTC+1)
 }
 
 /**

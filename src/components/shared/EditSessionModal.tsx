@@ -16,7 +16,7 @@ interface EditSessionModalProps {
   isOpen: boolean;
   session: TimeEntryResponseDto | null;
   onClose: () => void;
-  onSave: (sessionId: string, data: { start_time: string; end_time: string }) => Promise<void>;
+  onSave: (sessionId: string, data: { start_time: string; end_time: string; timezone_offset: number }) => Promise<void>;
 }
 
 export function EditSessionModal({ isOpen, session, onClose, onSave }: EditSessionModalProps) {
@@ -87,6 +87,7 @@ export function EditSessionModal({ isOpen, session, onClose, onSave }: EditSessi
       await onSave(session.id, {
         start_time: start.toISOString(),
         end_time: end.toISOString(),
+        timezone_offset: -start.getTimezoneOffset(), // Convert to minutes offset from UTC
       });
       onClose();
     } catch (err) {

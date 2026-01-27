@@ -4,6 +4,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@/db/database.types";
 import { createTimeEntrySchema } from "@/lib/validation/time-entry.validation";
 import { createTimeEntry } from "@/lib/services/time-entry.service";
+import { DailyCapacityExceededError } from "@/lib/errors/time-entry.errors";
 import { ZodError } from "zod";
 
 export const prerender = false;
@@ -241,25 +242,57 @@ export const POST: APIRoute = async ({ params, locals, request }) => {
     });
   }
 
-  // Step 6: Create time entry via service
+  // Step 6: Create time entry via service (may split into multiple entries if spans multiple days)
   try {
-    const timeEntry = await createTimeEntry(locals.supabase as SupabaseClient<Database>, {
+    const timeEntries = await createTimeEntry(locals.supabase as SupabaseClient<Database>, {
       user_id: user.id,
       task_id: taskId,
       start_time: requestBody.start_time,
       end_time: requestBody.end_time,
+      timezone_offset: requestBody.timezone_offset,
     });
 
-    // Step 7: Return created time entry with Location header
-    return new Response(JSON.stringify(timeEntry), {
+    // Step 7: Return created time entries
+    // If single entry, return with Location header for backwards compatibility
+    // If multiple entries (split across days), return array
+    const responseBody = timeEntries.length === 1 ? timeEntries[0] : timeEntries;
+    const headers: Record<string, string> = {
+      "Content-Type": "application/json",
+    };
+
+    // Only add Location header for single entry
+    if (timeEntries.length === 1) {
+      headers.Location = `/api/tasks/${taskId}/time-entries/${timeEntries[0].id}`;
+    }
+
+    return new Response(JSON.stringify(responseBody), {
       status: 201,
-      headers: {
-        "Content-Type": "application/json",
-        Location: `/api/tasks/${taskId}/time-entries/${timeEntry.id}`,
-      },
+      headers,
     });
   } catch (err) {
-    console.error("Error creating time entry:", err);
+    // Handle specific business logic errors
+    if (err instanceof DailyCapacityExceededError) {
+      const errorResponse: ErrorResponseDto = {
+        error: "DailyCapacityExceeded",
+        message: err.message,
+        details: {
+          day: err.day,
+          existing_duration_formatted: err.existingFormatted,
+          new_duration_formatted: err.newFormatted,
+          total_duration_formatted: err.totalFormatted,
+          limit: "24:00:00",
+        },
+      };
+      return new Response(JSON.stringify(errorResponse), {
+        status: 400,
+        headers: { "Content-Type": "application/json" },
+      });
+    }
+
+    // Log error for debugging
+    if (err instanceof Error) {
+      // Error logging in production should use proper logging service
+    }
     const errorResponse: ErrorResponseDto = {
       error: "InternalServerError",
       message: "An unexpected error occurred while creating time entry",

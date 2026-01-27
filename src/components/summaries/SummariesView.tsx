@@ -3,31 +3,53 @@ import { DateSelector } from "./DateSelector";
 import { SummaryHeroCard } from "./SummaryHeroCard";
 import { SummaryTaskList } from "./SummaryTaskList";
 import { EditTaskModalSummary } from "./EditTaskModalSummary";
+import { AddTimeButton } from "./AddTimeButton";
+import { SelectOrCreateTaskModal } from "./SelectOrCreateTaskModal";
 import { useDailySummary } from "./hooks/useDailySummary";
+import type { TaskStatus } from "../../types";
 
 export default function SummariesView() {
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
   const { summary, isLoading, error, refetch } = useDailySummary(selectedDate);
 
-  // Modal state
+  // Edit Task Modal state
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [selectedTaskId, setSelectedTaskId] = useState<string | null>(null);
   const [selectedTaskName, setSelectedTaskName] = useState<string>("");
+  const [selectedTaskStatus, setSelectedTaskStatus] = useState<TaskStatus>("active");
 
-  const handleTaskClick = (taskId: string, date: Date) => {
+  // Add Time Modal state
+  const [isSelectTaskModalOpen, setIsSelectTaskModalOpen] = useState(false);
+
+  const handleTaskClick = (taskId: string) => {
     // Find task name from summary
     const task = summary?.tasks.find((t) => t.task_id === taskId);
     if (task) {
       setSelectedTaskId(taskId);
       setSelectedTaskName(task.task_name);
+      setSelectedTaskStatus(task.task_status);
       setIsEditModalOpen(true);
     }
+  };
+
+  const handleAddTimeClick = () => {
+    setIsSelectTaskModalOpen(true);
+  };
+
+  const handleTaskSelected = (taskId: string, taskName: string) => {
+    // Close select modal and open edit modal for the selected task
+    setIsSelectTaskModalOpen(false);
+    setSelectedTaskId(taskId);
+    setSelectedTaskName(taskName);
+    setSelectedTaskStatus("active"); // New tasks are always active
+    setIsEditModalOpen(true);
   };
 
   const handleModalClose = () => {
     setIsEditModalOpen(false);
     setSelectedTaskId(null);
     setSelectedTaskName("");
+    setSelectedTaskStatus("active");
   };
 
   const handleSessionUpdated = () => {
@@ -60,7 +82,10 @@ export default function SummariesView() {
           <h1 className="text-3xl font-bold">Podsumowanie</h1>
         </div>
 
-        <DateSelector selectedDate={selectedDate} onDateChange={setSelectedDate} disabled={isLoading} />
+        <div className="flex items-center justify-between gap-4">
+          <DateSelector selectedDate={selectedDate} onDateChange={setSelectedDate} disabled={isLoading} />
+          <AddTimeButton onClick={handleAddTimeClick} disabled={isLoading} />
+        </div>
 
         <SummaryHeroCard
           totalDurationFormatted={summary?.total_duration_formatted || null}
@@ -86,10 +111,19 @@ export default function SummariesView() {
           onClose={handleModalClose}
           taskId={selectedTaskId}
           taskName={selectedTaskName}
+          taskStatus={selectedTaskStatus}
           selectedDate={selectedDate}
           onSessionUpdated={handleSessionUpdated}
         />
       )}
+
+      {/* Select or Create Task Modal */}
+      <SelectOrCreateTaskModal
+        isOpen={isSelectTaskModalOpen}
+        onClose={() => setIsSelectTaskModalOpen(false)}
+        onTaskSelected={handleTaskSelected}
+        selectedDate={selectedDate}
+      />
     </div>
   );
 }

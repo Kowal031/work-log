@@ -6,6 +6,24 @@ import type {
   TimeEntryResponseDto,
 } from "@/types";
 
+interface ErrorResponse {
+  error: string;
+  message: string;
+  details?: Record<string, unknown>;
+}
+
+export interface ExtendedError extends Error {
+  code?: string;
+  details?: Record<string, unknown>;
+}
+
+function createErrorFromResponse(error: ErrorResponse): ExtendedError {
+  const err = new Error(error.message || "Request failed") as ExtendedError;
+  err.code = error.error;
+  err.details = error.details;
+  return err;
+}
+
 /**
  * Fetch all tasks for the current user
  */
@@ -101,17 +119,22 @@ export async function startTimer(taskId: string): Promise<TimeEntryResponseDto> 
 /**
  * Stop a timer for a task
  */
-export async function stopTimer(taskId: string, timeEntryId: string): Promise<TimeEntryResponseDto> {
+export async function stopTimer(
+  taskId: string,
+  timeEntryId: string,
+  timezone_offset: number
+): Promise<TimeEntryResponseDto> {
   const response = await fetch(`/api/tasks/${taskId}/time-entries/${timeEntryId}/stop`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
     },
+    body: JSON.stringify({ timezone_offset }),
   });
 
   if (!response.ok) {
-    const error = await response.json();
-    throw new Error(error.message || "Failed to stop timer");
+    const error: ErrorResponse = await response.json();
+    throw createErrorFromResponse(error);
   }
 
   return response.json();
@@ -151,7 +174,7 @@ export async function getTimeEntries(taskId: string): Promise<TimeEntryResponseD
 export async function updateTimeEntry(
   taskId: string,
   timeEntryId: string,
-  data: { start_time?: string; end_time?: string }
+  data: { start_time?: string; end_time?: string; timezone_offset?: number }
 ): Promise<TimeEntryResponseDto> {
   const response = await fetch(`/api/tasks/${taskId}/time-entries/${timeEntryId}`, {
     method: "PATCH",
@@ -162,8 +185,8 @@ export async function updateTimeEntry(
   });
 
   if (!response.ok) {
-    const error = await response.json();
-    throw new Error(error.message || "Failed to update time entry");
+    const error: ErrorResponse = await response.json();
+    throw createErrorFromResponse(error);
   }
 
   return response.json();
@@ -171,11 +194,12 @@ export async function updateTimeEntry(
 
 /**
  * Create a new time entry manually with start and end times
+ * Returns single entry or array of entries if session was split across multiple days
  */
 export async function createTimeEntry(
   taskId: string,
-  data: { start_time: string; end_time: string }
-): Promise<TimeEntryResponseDto> {
+  data: { start_time: string; end_time: string; timezone_offset: number }
+): Promise<TimeEntryResponseDto | TimeEntryResponseDto[]> {
   const response = await fetch(`/api/tasks/${taskId}/time-entries`, {
     method: "POST",
     headers: {
@@ -185,8 +209,8 @@ export async function createTimeEntry(
   });
 
   if (!response.ok) {
-    const error = await response.json();
-    throw new Error(error.message || "Failed to create time entry");
+    const error: ErrorResponse = await response.json();
+    throw createErrorFromResponse(error);
   }
 
   return response.json();

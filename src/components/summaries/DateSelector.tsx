@@ -2,6 +2,7 @@ import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { CalendarIcon, ChevronLeft, ChevronRight } from "lucide-react";
+import { pl } from "date-fns/locale";
 
 interface DateSelectorProps {
   selectedDate: Date;
@@ -60,7 +61,7 @@ export function DateSelector({ selectedDate, onDateChange, disabled }: DateSelec
               selected={selectedDate}
               onSelect={(date) => date && onDateChange(date)}
               initialFocus
-              locale="pl"
+              locale={pl}
             />
           </PopoverContent>
         </Popover>

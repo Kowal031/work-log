@@ -1,6 +1,8 @@
 import { stopTimeEntry } from "@/lib/services/time-entry.service";
 import type { ErrorResponseDto, StopTimeEntryCommand, TimeEntryResponseDto } from "@/types";
 import type { APIRoute } from "astro";
+import { stopTimeEntrySchema } from "@/lib/validation/time-entry.validation";
+import { DailyCapacityExceededError } from "@/lib/errors/time-entry.errors";
 
 export const prerender = false;
 
@@ -8,7 +10,7 @@ export const prerender = false;
  * POST /api/tasks/{taskId}/time-entries/{timeEntryId}/stop
  * Stop an active time entry
  */
-export const POST: APIRoute = async ({ params, locals }) => {
+export const POST: APIRoute = async ({ params, locals, request }) => {
   // Step 1: Extract and validate parameters from path
   const { taskId, timeEntryId } = params;
 
@@ -54,19 +56,48 @@ export const POST: APIRoute = async ({ params, locals }) => {
     });
   }
 
-  // Step 3: Create command object with current timestamp
+  // Step 3: Parse and validate request body
+  let requestData;
+  try {
+    requestData = await request.json();
+  } catch {
+    const errorResponse: ErrorResponseDto = {
+      error: "BadRequest",
+      message: "Invalid JSON in request body",
+    };
+    return new Response(JSON.stringify(errorResponse), {
+      status: 400,
+      headers: { "Content-Type": "application/json" },
+    });
+  }
+
+  const validation = stopTimeEntrySchema.safeParse(requestData);
+  if (!validation.success) {
+    const errorResponse: ErrorResponseDto = {
+      error: "BadRequest",
+      message: "Validation failed",
+      details: validation.error.flatten(),
+    };
+    return new Response(JSON.stringify(errorResponse), {
+      status: 400,
+      headers: { "Content-Type": "application/json" },
+    });
+  }
+
+  // Step 4: Create command object with current timestamp
   const command: StopTimeEntryCommand = {
     user_id: user.id,
     task_id: taskId,
     time_entry_id: timeEntryId,
     end_time: new Date().toISOString(),
+    timezone_offset: validation.data.timezone_offset,
   };
 
-  // Step 4: Call service layer to stop the timer
+  // Step 5: Call service layer to stop the timer
   try {
     const timeEntry: TimeEntryResponseDto = await stopTimeEntry(locals.supabase, command);
 
-    // Step 5: Return success response
+    // Step 6: Return success response
     return new Response(JSON.stringify(timeEntry), {
       status: 200,
       headers: {
@@ -75,6 +106,25 @@ export const POST: APIRoute = async ({ params, locals }) => {
     });
   } catch (error) {
     console.error("Error stopping time entry:", error);
+
+    // Handle daily capacity exceeded error
+    if (error instanceof DailyCapacityExceededError) {
+      const errorResponse: ErrorResponseDto = {
+        error: "DailyCapacityExceeded",
+        message: error.message,
+        details: {
+          day: error.day,
+          existing_duration_formatted: error.existingFormatted,
+          new_duration_formatted: error.newFormatted,
+          total_duration_formatted: error.totalFormatted,
+          limit: "24:00:00",
+        },
+      };
+      return new Response(JSON.stringify(errorResponse), {
+        status: 400,
+        headers: { "Content-Type": "application/json" },
+      });
+    }
 
     // Handle specific business logic errors
     if (error instanceof Error) {

@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
-import { useEffect, useMemo, useRef } from "react";
+import { useEffect, useRef } from "react";
 import { toast } from "sonner";
 import { useDashboardState } from "./hooks/useDashboardState";
 import { TaskList } from "./task/TaskList";
@@ -44,33 +44,6 @@ export default function DashboardView() {
 
   // Ref for ActiveTimerCard to enable auto-scroll
   const activeTimerRef = useRef<HTMLDivElement>(null);
-
-  // Calculate total time for a task from time entries (memoized)
-  const calculateTotalTime = useMemo(
-    () =>
-      (entries: { start_time: string; end_time: string | null }[]): string => {
-        const totalSeconds = entries.reduce((sum, entry) => {
-          if (!entry.end_time) return sum; // Skip active entries
-          const start = new Date(entry.start_time).getTime();
-          const end = new Date(entry.end_time).getTime();
-          return sum + Math.floor((end - start) / 1000);
-        }, 0);
-
-        if (totalSeconds === 0) return "";
-
-        const hours = Math.floor(totalSeconds / 3600);
-        const minutes = Math.floor((totalSeconds % 3600) / 60);
-
-        if (hours > 0) {
-          return `${hours}h ${minutes}m`;
-        }
-        if (minutes > 0) {
-          return `${minutes}m`;
-        }
-        return "";
-      },
-    []
-  );
 
   // Fetch initial data
   useEffect(() => {
@@ -200,16 +173,26 @@ export default function DashboardView() {
 
   const handleStopTimer = async (taskId: string, timeEntryId: string) => {
     try {
-      await tasksApi.stopTimer(taskId, timeEntryId);
+      const timezoneOffset = -new Date().getTimezoneOffset();
+      await tasksApi.stopTimer(taskId, timeEntryId, timezoneOffset);
       setActiveTimer(null);
       toast.success("Licznik zatrzymany", {
         description: "Czas został zapisany",
       });
     } catch (err) {
-      const message = err instanceof Error ? err.message : "Failed to stop timer";
-      toast.error("Błąd", {
-        description: message,
-      });
+      const extendedError = err as tasksApi.ExtendedError;
+
+      if (extendedError.code === "DailyCapacityExceeded" && extendedError.details) {
+        toast.error(extendedError.message, {
+          description: "",
+          duration: 7000,
+        });
+      } else {
+        const message = err instanceof Error ? err.message : "Failed to stop timer";
+        toast.error("Błąd", {
+          description: message,
+        });
+      }
     }
   };
 
@@ -242,7 +225,8 @@ export default function DashboardView() {
 
     try {
       // First, stop the timer to end the session
-      await tasksApi.stopTimer(activeTimer.task_id, activeTimer.id);
+      const timezoneOffset = -new Date().getTimezoneOffset();
+      await tasksApi.stopTimer(activeTimer.task_id, activeTimer.id, timezoneOffset);
       const stoppedSessionId = activeTimer.id;
 
       setActiveTimer(null);

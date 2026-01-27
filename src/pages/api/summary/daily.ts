@@ -33,6 +33,7 @@ export const GET: APIRoute = async ({ url, locals }) => {
   const queryParams = {
     date_from: url.searchParams.get("date_from") || undefined,
     date_to: url.searchParams.get("date_to") || undefined,
+    timezone_offset: url.searchParams.get("timezone_offset") || undefined,
   };
 
   // Validate with Zod schema
@@ -90,7 +91,13 @@ export const GET: APIRoute = async ({ url, locals }) => {
 
   // Step 6: Call service to get summary
   try {
-    const summary: DailySummaryResponseDto = await getDailySummary(locals.supabase, user.id, dateFrom, dateTo);
+    const summary: DailySummaryResponseDto = await getDailySummary(
+      locals.supabase, 
+      user.id, 
+      dateFrom, 
+      dateTo,
+      validatedQuery.timezone_offset
+    );
 
     // Step 7: Return success response
     return new Response(JSON.stringify(summary), {
