@@ -17,20 +17,29 @@ Endpoint **POST /api/tasks/{taskId}/time-entries/{timeEntryId}/stop** umożliwia
 - **Struktura URL**: `/api/tasks/{taskId}/time-entries/{timeEntryId}/stop`
 - **Headers**:
   - `Authorization: Bearer <token>` (obsługiwane przez Supabase Auth via cookies/headers)
+  - `Content-Type: application/json`
   
 - **Parametry**:
   - **Path Parameters**:
     - `taskId` (string, UUID): Identyfikator zadania
     - `timeEntryId` (string, UUID): Identyfikator time entry do zatrzymania
   
-  - **Request Body**: Pusty (brak danych wejściowych)
+  - **Request Body**:
+    ```json
+    {
+      "timezone_offset": 60  // Minutes offset from UTC (e.g., 60 for UTC+1)
+    }
+    ```
 
 - **Przykładowe żądania**:
   ```bash
   # Zatrzymanie timera
   POST /api/tasks/550e8400-e29b-41d4-a716-446655440000/time-entries/770e8400-e29b-41d4-a716-446655440000/stop
+  Content-Type: application/json
   
-  # Brak body - wszystkie dane z path params i auth
+  {
+    "timezone_offset": 60
+  }
   ```
 
 ## 3. Wykorzystywane typy
@@ -56,6 +65,7 @@ interface StopTimeEntryCommand {
   user_id: string;       // UUID użytkownika z sesji
   time_entry_id: string; // UUID time entry z path params
   end_time: string;      // ISO 8601 timestamp (now)
+  timezone_offset: number; // Minutes offset from UTC (for capacity validation)
 }
 ```
 
@@ -96,6 +106,21 @@ Content-Type: application/json
 {
   "error": "BadRequest",
   "message": "Invalid task ID or time entry ID format. Must be valid UUIDs."
+}
+```
+
+**400 Bad Request** - Przekroczenie limitu 24h:
+```json
+{
+  "error": "Nie można zapisać sesji dla dnia 2026-01-25: przekroczono dzienny limit 24:00:00. Wykorzystany czas: 12:30:00, czas sesji: 14:00:00, łączny czas: 26:30:00.",
+  "code": "DailyCapacityExceeded",
+  "details": {
+    "day": "2026-01-25",
+    "existing_duration_formatted": "12:30:00",
+    "new_duration_formatted": "14:00:00",
+    "total_duration_formatted": "26:30:00",
+    "limit": "24:00:00"
+  }
 }
 ```
 

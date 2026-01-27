@@ -78,7 +78,9 @@ Następujące funkcjonalności nie wchodzą w zakres MVP i nie będą implemento
   - Przy każdym zadaniu na liście znajduje się przycisk "Start".
   - Po kliknięciu "Start", licznik zaczyna mierzyć czas, a przycisk zmienia się na "Stop".
   - W danym momencie czas może być mierzony tylko dla jednego zadania. Próba uruchomienia drugiego licznika jest niemożliwa lub powoduje zatrzymanie poprzedniego.
-  - Po kliknięciu "Stop", licznik zatrzymuje się, a system tworzy nowy wpis czasowy (sesję) powiązany z zadaniem i czasem trwania.
+  - Po kliknięciu "Stop", system waliduje czy zatrzymanie licznika nie spowoduje przekroczenia 24-godzinnego limitu dla któregokolwiek dnia (w lokalnej strefie czasowej użytkownika).
+  - Jeśli walidacja przejdzie pomyślnie, licznik zatrzymuje się i system tworzy nowy wpis czasowy (sesję) powiązany z zadaniem i czasem trwania.
+  - Jeśli zatrzymanie licznika spowodowałoby przekroczenie limitu, system wyświetla szczegółowy komunikat błędu z informacją o problematycznym dniu, już wykorzystanym czasie, czasie sesji i łącznym czasie. Licznik pozostaje aktywny.
 
 - ID: US-005
 - Tytuł: Pauzowanie i wznawianie licznika czasu

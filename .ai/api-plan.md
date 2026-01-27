@@ -136,8 +136,13 @@
   - **Errors**: `401 Unauthorized`, `404 Not Found`, `409 Conflict` (Another timer is already active)
 
 - **POST** `/api/tasks/{taskId}/time-entries/{timeEntryId}/stop`
-  - **Description**: Stops an active time entry.
-  - **Request Body**: (Empty)
+  - **Description**: Stops an active time entry. Validates daily time capacity before stopping.
+  - **Request Body**:
+    ```json
+    {
+      "timezone_offset": 60
+    }
+    ```
   - **Response Body**:
     ```json
     {
@@ -148,7 +153,11 @@
     }
     ```
   - **Success**: `200 OK`
-  - **Errors**: `401 Unauthorized`, `404 Not Found`
+  - **Errors**: 
+    - `400 Bad Request` with error code `DailyCapacityExceeded` (Total time for a day exceeds 24 hours)
+    - `401 Unauthorized`
+    - `404 Not Found`
+    - `409 Conflict` (Timer already stopped)
 
 - **POST** `/api/tasks/{taskId}/time-entries`
   - **Description**: Manually creates a new time entry for a task with specified start and end times. Sessions crossing midnight are automatically split based on user's timezone.
@@ -272,9 +281,10 @@
 - **No Edits on Active Tasks**: The `PATCH /api/tasks/{taskId}` endpoint will prevent updates to a task if it has an active timer. It will query for an active `time_entry` associated with the `taskId` before allowing the update.
 - **Daily Summary Calculation**: The `GET /api/summary/daily` endpoint will use the `get_daily_summary` PostgreSQL function defined in the DB plan to efficiently calculate total work duration per task for a given day.
 - **Active Timer Recovery**: The `GET /api/tasks/active-timer` endpoint allows the frontend to check for an unfinished session when the application starts, fulfilling requirement F-06 from the PRD. The frontend will then be responsible for presenting the user with recovery options.
-- **Daily Time Capacity Validation**: When creating or editing time entries (`POST /api/tasks/{taskId}/time-entries` and `PATCH /api/tasks/{taskId}/time-entries/{timeEntryId}`), the API validates that the total time for any given day (in user's timezone) does not exceed 24 hours. This validation:
+- **Daily Time Capacity Validation**: When creating or editing time entries (`POST /api/tasks/{taskId}/time-entries`, `PATCH /api/tasks/{taskId}/time-entries/{timeEntryId}`, and `POST /api/tasks/{taskId}/time-entries/{timeEntryId}/stop`), the API validates that the total time for any given day (in user's timezone) does not exceed 24 hours. This validation:
   - Considers all completed time entries (active timers are excluded)
   - Checks each day affected by the new/edited entry
-  - When editing, excludes the current entry from existing time calculations
+  - When editing or stopping, excludes the current entry from existing time calculations
   - Returns `400 Bad Request` with error code `DailyCapacityExceeded` and detailed information (day, existing time, new time, total, limit) if validation fails
   - Uses the `timezone_offset` parameter to correctly determine local days
+  - For stop endpoint: validates before the timer is stopped to prevent invalid data from being saved

@@ -19,15 +19,19 @@ Zaimplementowano kompletną walidację pojemności czasowej dnia, która zapobie
 **Plik:** `src/lib/services/time-entry.service.ts`
 - ✅ Funkcja `validateDailyTimeCapacity` - główna walidacja
 - ✅ Funkcja `sumNewEntriesForDay` - helper do obliczania czasu dla dni
+- ✅ Funkcja `splitTimeEntryIntoDays` - wydzielona do reużycia w `stopTimeEntry`
 - ✅ Integracja w `createTimeEntry` (po splitowaniu, przed zapisem)
 - ✅ Integracja w `updateTimeEntry` (z wykluczeniem edytowanego wpisu)
+- ✅ Integracja w `stopTimeEntry` (z wykluczeniem zatrzymywanego wpisu, walidacja przed zapisem)
 
 **Plik:** `src/types.ts`
 - ✅ Dodano `timezone_offset?: number` do `UpdateTimeEntryCommand`
 - ✅ Dodano `timezone_offset?: number` do `UpdateTimeEntryRequestDto`
+- ✅ Dodano `timezone_offset: number` do `StopTimeEntryCommand`
 
 **Plik:** `src/lib/validation/time-entry.validation.ts`
 - ✅ Dodano opcjonalny `timezone_offset` do `updateTimeEntrySchema`
+- ✅ Dodano wymagany `timezone_offset` do `stopTimeEntrySchema`
 
 ### 2. Backend - API Endpoints ✅
 
@@ -42,13 +46,21 @@ Zaimplementowano kompletną walidację pojemności czasowej dnia, która zapobie
 - ✅ Przekazuje `timezone_offset` do serwisu
 - ✅ Zwraca 400 Bad Request z kodem `DailyCapacityExceeded`
 
+**Plik:** `src/pages/api/tasks/[taskId]/time-entries/[timeEntryId]/stop.ts`
+- ✅ Import `DailyCapacityExceededError` i `stopTimeEntrySchema`
+- ✅ Walidacja request body z `timezone_offset`
+- ✅ Przekazuje `timezone_offset` do serwisu
+- ✅ Obsługa błędu w POST endpoint
+- ✅ Zwraca 400 Bad Request z kodem `DailyCapacityExceeded`
+
 ### 3. Frontend - Error Handling ✅
 
 **Plik:** `src/lib/api/tasks.api.ts`
-- ✅ Interface `ExtendedError` zamiast `any` (proper typing)
+- ✅ Interface `ExtendedError` zamiast `any` (proper typing) - wyeksportowany
 - ✅ Funkcja `createErrorFromResponse` zachowuje error code i details
 - ✅ `createTimeEntry` akceptuje `timezone_offset`
 - ✅ `updateTimeEntry` akceptuje `timezone_offset`
+- ✅ `stopTimer` akceptuje `timezone_offset` i używa `createErrorFromResponse`
 
 **Plik:** `src/components/summaries/AddTimeEntryModal.tsx`
 - ✅ Wysyła `timezone_offset` w danych
@@ -62,12 +74,19 @@ Zaimplementowano kompletną walidację pojemności czasowej dnia, która zapobie
 - ✅ Polskie komunikaty w toast (7 sekund)
 - ✅ Szczegółowe informacje: dzień, wykorzystany czas, nowy czas, suma, limit
 
+**Plik:** `src/components/dashboard/DashboardView.tsx`
+- ✅ `handleStopTimer` wysyła `timezone_offset`
+- ✅ `handleStopTimer` wykrywa i wyświetla błąd `DailyCapacityExceeded`
+- ✅ Polskie komunikaty w toast (7 sekund)
+- ✅ Szczegółowe informacje: dzień, wykorzystany czas, nowy czas, suma, limit
+
 ### 4. Dokumentacja ✅
 
 **Zaktualizowane pliki:**
 - ✅ `update-time-entry-endpoint-implementation-plan.md` - dodano `timezone_offset`, opisano błąd `DailyCapacityExceeded`
 - ✅ `post-time-entry-endpoint-implementation-plan.md` - opisano błąd `DailyCapacityExceeded`
-- ✅ `api-plan.md` - dodano sekcję o walidacji pojemności czasowej w Business Logic
+- ✅ `stop-time-entry-endpoint-implementation-plan.md` - dodano `timezone_offset`, opisano błąd `DailyCapacityExceeded`
+- ✅ `api-plan.md` - dodano sekcję o walidacji pojemności czasowej w Business Logic, zaktualizowano wszystkie endpointy (POST, PATCH, STOP)
 - ✅ `daily-time-capacity-validation-plan.md` - oryginalny plan (pozostaje jako referencja)
 
 ## Kluczowe cechy
@@ -119,6 +138,14 @@ Zaimplementowano kompletną walidację pojemności czasowej dnia, która zapobie
 - Edycja A na: 09:00-18:00 (9h)
 - Walidacja: 4h (B) + 9h (nowy A) = 13h ✓
 - Entry A (stary) jest wykluczony
+
+### ✅ Scenariusz 5: Stop timer z walidacją
+- Dzień 2026-01-27
+- Entry A (zakończony): 08:00-12:00 (4h)
+- Entry B (aktywny timer): 14:00-? (zostanie zatrzymany)
+- Stop o 23:00: Entry B będzie miał 9h
+- Walidacja przed zapisem: 4h (A) + 9h (B) = 13h ✓
+- Timer B jest wykluczony z istniejących wpisów podczas walidacji
 
 ## Testy zalecane
 

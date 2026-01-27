@@ -129,41 +129,95 @@
 
 **Refaktoryzacja:** ✅ `EditSessionModal` przeniesiony do `src/components/shared/` jako komponent reużywalny, dostępny dla Dashboard i Summaries.
 
-1. Utworzyć `EditSessionModal.tsx` w `src/components/summaries/`
-2. Zaimplementować formularz:
-   - Data (read-only lub editable)
-   - Time picker dla start_time
-   - Time picker dla end_time
-   - Obliczony czas trwania (automatycznie)
-3. Dodać walidację: `end_time > start_time`
-4. Integracja z API:
-   - `PATCH /api/tasks/{taskId}/time-entries/{timeEntryId}` (już istnieje)
-   - Dodać funkcję `updateTimeEntry()` w kliencie API
-   - Dodać funkcję `deleteTimeEntry()` w kliencie API
-5. Przycisk "Usuń sesję" z dialogiem potwierdzenia
-6. Odświeżenie danych po zapisie/usunięciu
+**Kluczowe funkcjonalności:**
+1. ✅ Formularz edycji: datetime-local inputs dla start_time i end_time
+2. ✅ Walidacja: end_time > start_time, brak przyszłych czasów
+3. ✅ Timezone handling: przekazuje timezone_offset do backendu
+4. ✅ Backend: automatyczne splitting wpisów przez midnight w lokalnej strefie
+5. ✅ Backend: walidacja limitu 24h dla każdego dnia (DailyCapacityExceededError)
+6. ✅ Obsługa błędów: toast z polskim komunikatem przy przekroczeniu limitu
+7. ✅ Przycisk "Usuń sesję" z dialogiem potwierdzenia
+8. ✅ Odświeżenie danych po zapisie/usunięciu
 
-### Faza 3: Ręczne dodawanie czasu (5-7h pracy)
-**WYMAGA:** Najpierw utworzenie endpointu backend `POST /api/tasks/{taskId}/time-entries`
+**Komponenty używane:**
+- ✅ `EditSessionModal` (shared) - formularz edycji sesji z timezone support
+- ✅ `PATCH /api/tasks/{taskId}/time-entries/{timeEntryId}` - endpoint z timezone_offset
+- ✅ `DELETE /api/tasks/{taskId}/time-entries/{timeEntryId}` - usuwanie sesji
+- ✅ `updateTimeEntry()` w tasks.api.ts - klient API
+- ✅ `deleteTimeEntry()` w tasks.api.ts - klient API
 
-1. Utworzyć `AddManualTimeButton.tsx`:
-   - Przycisk z ikoną Plus
-   - Umieścić w `SummariesView` obok DateSelector
-2. Utworzyć `AddManualTimeModal.tsx`:
-   - Select/Combobox do wyboru zadania
-   - Date picker (domyślnie: selectedDate)
-   - Time pickers (start, end)
-   - Walidacja: wszystkie required, end > start
-3. Rozszerzyć klienta API:
-   - `createTimeEntry(taskId, data)` w `time-entries.api.ts`
-   - `getActiveTasks()` w `tasks.api.ts`
-4. Po zapisie: odświeżenie danych podsumowania
+### Faza 3: Ręczne dodawanie czasu ✅ (zakończona - ~6h)
 
-### Faza 4: Poprawki i finalizacja (1h pracy)
-1. Naprawa lokalizacji kalendarza:
+**Utworzone komponenty:**
+1. ✅ **AddTimeButton.tsx** - Przycisk "+ Dodaj czas" z ikoną Plus
+2. ✅ **SelectOrCreateTaskModal.tsx** - Modal z dwoma trybami:
+   - Wybór istniejącego aktywnego zadania (lista z select)
+   - Utworzenie nowego zadania (formularz z nazwą i opisem)
+3. ✅ **AddTimeEntryModal.tsx** - Modal do dodawania sesji czasowej:
+   - datetime-local inputs dla start i end time
+   - Domyślne wartości: 9:00-17:00 dla wybranej daty
+   - Kalkulacja i wyświetlanie czasu trwania
+   - Walidacja: end > start, brak przyszłych czasów
+   - Przesyła timezone_offset (w minutach od UTC) do backendu
+   - Backend automatycznie splituje wpisy przekraczające midnight w lokalnej strefie użytkownika
+
+**Integracja w SummariesView:**
+4. ✅ Dodano AddTimeButton obok DateSelector
+5. ✅ Implementacja orchestracji modali:
+   - `handleAddTimeClick()` otwiera SelectOrCreateTaskModal
+   - `handleTaskSelected()` zamyka SelectOrCreateTaskModal i otwiera EditTaskModalSummary
+6. ✅ State management dla SelectOrCreateTaskModal
+
+**Rozszerzenie EditTaskModalSummary:**
+7. ✅ Dodano przycisk "+ Dodaj sesję" w nagłówku listy sesji
+8. ✅ Integracja z AddTimeEntryModal
+9. ✅ Implementacja `handleAddNewSession()` do zapisu nowej sesji
+10. ✅ Automatyczne odświeżanie danych po dodaniu sesji
+
+**Backend API:**
+11. ✅ Dodano `CreateTimeEntryRequestDto` w types.ts
+12. ✅ Dodano `CreateTimeEntryCommand` w types.ts
+13. ✅ Dodano `createTimeEntrySchema` w time-entry.validation.ts (Zod)
+14. ✅ Dodano `createTimeEntry()` w time-entry.service.ts z funkcjami:
+    - Splitting wpisów przekraczających midnight w lokalnej strefie użytkownika (timezone_offset)
+    - Walidacja limitu 24h dla każdego dnia (DailyCapacityExceededError)
+    - Wykluczanie aktywnych timerów z obliczeń pojemności
+15. ✅ Implementacja `POST /api/tasks/{taskId}/time-entries` w time-entries endpoint:
+    - Walidacja UUID taskId
+    - Sprawdzanie autoryzacji
+    - Walidacja request body (Zod) z timezone_offset
+    - Walidacja biznesowa (end > start, brak przyszłych czasów)
+    - Weryfikacja własności zadania
+    - Automatyczne dzielenie wpisów przez midnight (używa timezone_offset)
+    - Walidacja limitu 24h dla każdego dnia
+    - Obsługa błędu DailyCapacityExceeded (400 Bad Request) z polskim komunikatem
+    - Utworzenie wpisu(ów) w bazie
+    - Zwrot 201 Created z Location header
+16. ✅ Dodano `createTimeEntry()` w tasks.api.ts (frontend)
+
+**Dokumentacja:**
+17. ✅ Zaktualizowano api-plan.md
+18. ✅ Utworzono post-time-entry-endpoint-implementation-plan.md
+19. ✅ Zaktualizowano ui-plan.md
+
+**Workflow użytkownika:**
+1. Summaries → Kliknięcie "+ Dodaj czas"
+2. SelectOrCreateTaskModal otwiera się
+3. User wybiera istniejące zadanie LUB tworzy nowe
+4. Po wyborze/utworzeniu → modal zamyka się, EditTaskModalSummary otwiera się
+5. W modalu sesji user klika "+ Dodaj sesję"
+6. AddTimeEntryModal otwiera się z formularzem
+7. User wypełnia start_time, end_time
+8. Walidacja → Zapis (POST)
+9. Modale zamykają się
+10. Podsumowanie odświeża się automatycznie
+
+
+### Faza 4: Poprawki i finalizacja ✅ (zakończona - ~0.5h)
+1. **Naprawa lokalizacji kalendarza:** ✅
    - Import `pl` z `date-fns/locale`
    - Zmiana `locale="pl"` na `locale={pl}` w DateSelector
-2. Testy finalne:
+2. **Testy finalne:**
    - Wszystkie interakcje użytkownika
    - Responsywność mobile
    - Obsługa błędów
@@ -182,20 +236,20 @@
 - ⏳ Collapsible - do zainstalowania w Fazie 2A
 
 ### API Endpoints (status):
-- ✅ `GET /api/summary/daily` - działa
+- ✅ `GET /api/summary/daily` - działa (z timezone_offset)
 - ✅ `GET /api/tasks/{taskId}/time-entries` - istnieje
-- ✅ `PATCH /api/tasks/{taskId}/time-entries/{timeEntryId}` - istnieje
+- ✅ `PATCH /api/tasks/{taskId}/time-entries/{timeEntryId}` - istnieje (z timezone_offset, splitting, walidacja 24h)
 - ✅ `DELETE /api/tasks/{taskId}/time-entries/{timeEntryId}` - istnieje
-- ❌ `POST /api/tasks/{taskId}/time-entries` - BRAKUJE (potrzebny do Fazy 3)
+- ✅ `POST /api/tasks/{taskId}/time-entries` - ZAIMPLEMENTOWANE (Faza 3) (z timezone_offset, splitting, walidacja 24h)
 - ✅ `GET /api/tasks?status=active` - istnieje
+- ✅ `POST /api/tasks` - istnieje
 
 ### Znane problemy:
-1. ⚠️ Calendar locale jako string zamiast obiektu - do poprawy w Fazie 4
-2. ⚠️ Formatowanie kodu (CRLF/LF) - rozwiązane przez formattery IDE
+1. ✅ Calendar locale jako string zamiast obiektu - NAPRAWIONE w Fazie 4
+2. ✅ Formatowanie kodu (CRLF/LF) - rozwiązane przez formattery IDE
 
 ### Komponenty do reużycia:
-- Sprawdzić czy `EditSessionModal` już istnieje w Dashboard
-- Jeśli tak, przenieść do `src/components/shared/` i reużyć
+✅ `EditSessionModal` przeniesiony do `src/components/shared/` - dostępny dla Dashboard i Summaries
 
 ## Metryki
 
@@ -207,13 +261,35 @@
 
 **Faza 2A (zakończona):**
 - Pliki utworzone: 1 (EditTaskModalSummary)
-- Pliki zmodyfikowane: 3 (SummaryTaskItem, SummaryTaskList, SummariesView, useDailySummary)
+- Pliki zmodyfikowane: 4 (SummaryTaskItem, SummaryTaskList, SummariesView, useDailySummary)
 - Komponenty: 1 nowy (EditTaskModalSummary), 4 zmodyfikowane
-- Czas implementacji: ~30 min
+- Czas implementacji: ~2.5h
 - Pokrycie wymagań PRD: ~65%
 
-**Do zrobienia:**
-- Fazy pozostałe: 3, 4
-- Szacowany czas: ~6-8h
-- Komponenty do utworzenia: 2-3
-- Pokrycie wymagań PRD po ukończeniu: 100%
+**Refaktoryzacja (zakończona):**
+- Przeniesiono EditSessionModal do `src/components/shared/`
+- Zaktualizowano importy w 2 plikach
+- Czas: ~15 min
+
+**Faza 4 (zakończona):**
+- Pliki zmodyfikowane: 1 (DateSelector)
+- Naprawiono lokalizację kalendarza (import `pl` z date-fns/locale)
+- Czas implementacji: ~15 min
+- Pokrycie wymagań PRD: ~70%
+
+**Faza 3 (zakończona):**
+- Pliki utworzone: 3 komponenty (AddTimeButton, SelectOrCreateTaskModal, AddTimeEntryModal)
+- Pliki zmodyfikowane: 7 (SummariesView, EditTaskModalSummary, types.ts, time-entry.validation.ts, time-entry.service.ts, time-entries.ts endpoint, tasks.api.ts)
+- Backend endpoint: POST /api/tasks/{taskId}/time-entries
+- Dokumentacja: 3 pliki (api-plan.md, post-time-entry-endpoint-implementation-plan.md, ui-plan.md)
+- Czas implementacji: ~6h
+- Pokrycie wymagań PRD: ~100%
+
+**Podsumowanie całkowite:**
+- Wszystkie fazy zakończone: Faza 1 ✅, Faza 2A ✅, Faza 2B ✅ (reużycie), Faza 3 ✅, Faza 4 ✅
+- Łączny czas implementacji: ~13-14h
+- Pliki utworzone: 13
+- Pliki zmodyfikowane: 14
+- Komponenty: 9 nowych + 1 przeniesiony do shared
+- Endpointy backend: 1 nowy (POST time-entries)
+- Pokrycie wymagań PRD: ~100% ✅
