@@ -3,9 +3,11 @@ import type { TaskSummaryDto } from "@/types";
 
 interface SummaryTaskItemProps {
   task: TaskSummaryDto;
+  selectedDate: Date;
+  onTaskClick: (taskId: string, selectedDate: Date) => void;
 }
 
-export function SummaryTaskItem({ task }: SummaryTaskItemProps) {
+export function SummaryTaskItem({ task, selectedDate, onTaskClick }: SummaryTaskItemProps) {
   const getStatusColor = (status: string) => {
     switch (status) {
       case "completed":
@@ -33,7 +35,10 @@ export function SummaryTaskItem({ task }: SummaryTaskItemProps) {
   };
 
   return (
-    <Card className="hover:bg-accent/50 transition-colors">
+    <Card
+      className="hover:bg-accent/50 transition-colors cursor-pointer"
+      onClick={() => onTaskClick(task.task_id, selectedDate)}
+    >
       <CardContent className="p-4">
         <div className="flex items-center justify-between">
           <div className="flex-1 min-w-0">

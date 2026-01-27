@@ -4,9 +4,11 @@ import { SummaryTaskItem } from "./SummaryTaskItem";
 interface SummaryTaskListProps {
   tasks: TaskSummaryDto[];
   isLoading: boolean;
+  selectedDate: Date;
+  onTaskClick: (taskId: string, selectedDate: Date) => void;
 }
 
-export function SummaryTaskList({ tasks, isLoading }: SummaryTaskListProps) {
+export function SummaryTaskList({ tasks, isLoading, selectedDate, onTaskClick }: SummaryTaskListProps) {
   if (isLoading) {
     return (
       <div className="space-y-3">
@@ -31,7 +33,7 @@ export function SummaryTaskList({ tasks, isLoading }: SummaryTaskListProps) {
   return (
     <div className="space-y-3">
       {tasks.map((task) => (
-        <SummaryTaskItem key={task.task_id} task={task} />
+        <SummaryTaskItem key={task.task_id} task={task} selectedDate={selectedDate} onTaskClick={onTaskClick} />
       ))}
     </div>
   );

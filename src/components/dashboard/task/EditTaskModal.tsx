@@ -4,7 +4,7 @@ import type { TaskViewModel, TimeEntryResponseDto } from "@/types";
 import { useEffect, useState } from "react";
 import { TaskForm } from "./TaskForm";
 import { SessionHistoryList } from "./SessionHistoryList";
-import { EditSessionModal } from "./EditSessionModal";
+import { EditSessionModal } from "@/components/shared/EditSessionModal";
 import * as tasksApi from "@/lib/api/tasks.api";
 import { toast } from "sonner";
 

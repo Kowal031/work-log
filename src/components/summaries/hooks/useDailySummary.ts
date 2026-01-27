@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import type { DailySummaryResponseDto } from "@/types";
 import { getDailySummary } from "@/lib/api/summary.api";
 
@@ -6,12 +6,18 @@ interface UseDailySummaryReturn {
   summary: DailySummaryResponseDto | null;
   isLoading: boolean;
   error: string | null;
+  refetch: () => void;
 }
 
 export function useDailySummary(selectedDate: Date): UseDailySummaryReturn {
   const [summary, setSummary] = useState<DailySummaryResponseDto | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
+  const [refetchTrigger, setRefetchTrigger] = useState<number>(0);
+
+  const refetch = useCallback(() => {
+    setRefetchTrigger((prev) => prev + 1);
+  }, []);
 
   useEffect(() => {
     const fetchSummary = async () => {
@@ -38,9 +44,9 @@ export function useDailySummary(selectedDate: Date): UseDailySummaryReturn {
     };
 
     fetchSummary();
-  }, [selectedDate]);
+  }, [selectedDate, refetchTrigger]);
 
-  return { summary, isLoading, error };
+  return { summary, isLoading, error, refetch };
 }
 
 function formatDateToYYYYMMDD(date: Date): string {

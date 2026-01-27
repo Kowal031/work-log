@@ -2,11 +2,38 @@ import { useState } from "react";
 import { DateSelector } from "./DateSelector";
 import { SummaryHeroCard } from "./SummaryHeroCard";
 import { SummaryTaskList } from "./SummaryTaskList";
+import { EditTaskModalSummary } from "./EditTaskModalSummary";
 import { useDailySummary } from "./hooks/useDailySummary";
 
 export default function SummariesView() {
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
-  const { summary, isLoading, error } = useDailySummary(selectedDate);
+  const { summary, isLoading, error, refetch } = useDailySummary(selectedDate);
+
+  // Modal state
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [selectedTaskId, setSelectedTaskId] = useState<string | null>(null);
+  const [selectedTaskName, setSelectedTaskName] = useState<string>("");
+
+  const handleTaskClick = (taskId: string, date: Date) => {
+    // Find task name from summary
+    const task = summary?.tasks.find((t) => t.task_id === taskId);
+    if (task) {
+      setSelectedTaskId(taskId);
+      setSelectedTaskName(task.task_name);
+      setIsEditModalOpen(true);
+    }
+  };
+
+  const handleModalClose = () => {
+    setIsEditModalOpen(false);
+    setSelectedTaskId(null);
+    setSelectedTaskName("");
+  };
+
+  const handleSessionUpdated = () => {
+    // Refresh summary data after session is updated
+    refetch();
+  };
 
   if (error) {
     return (
@@ -43,9 +70,26 @@ export default function SummariesView() {
 
         <div className="space-y-4">
           <h2 className="text-xl font-semibold">Zadania</h2>
-          <SummaryTaskList tasks={summary?.tasks || []} isLoading={isLoading} />
+          <SummaryTaskList
+            tasks={summary?.tasks || []}
+            isLoading={isLoading}
+            selectedDate={selectedDate}
+            onTaskClick={handleTaskClick}
+          />
         </div>
       </div>
+
+      {/* Edit Task Modal for Summaries */}
+      {selectedTaskId && (
+        <EditTaskModalSummary
+          isOpen={isEditModalOpen}
+          onClose={handleModalClose}
+          taskId={selectedTaskId}
+          taskName={selectedTaskName}
+          selectedDate={selectedDate}
+          onSessionUpdated={handleSessionUpdated}
+        />
+      )}
     </div>
   );
 }
