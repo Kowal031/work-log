@@ -93,6 +93,10 @@ Aplikacja WorkLog posiada prostą, dwuwarstwową architekturę interfejsu użytk
   - Empty state
 - **API:**
   - GET /api/summary/daily?date=YYYY-MM-DD
+  - GET /api/tasks?status=active
+  - POST /api/tasks
+  - POST /api/tasks/{taskId}/time-entries
+  - GET /api/tasks/{taskId}/time-entries
   - PATCH /api/tasks/{taskId}/time-entries/{timeEntryId}
 - **UX i dostępność:**
   - Domyślnie dzisiejszy dzień
@@ -122,8 +126,14 @@ Aplikacja WorkLog posiada prostą, dwuwarstwową architekturę interfejsu użytk
 - Dashboard → Summaries (link w nav)
 - Wybór daty → Refresh danych
 - Rozwinięcie zadania → Lista sesji
+- Kliknięcie na zadanie → Modal z historią sesji dla wybranego dnia
 - Edycja sesji → Modal
-- Dodanie czasu ręcznie → Modal
+- Dodanie czasu ręcznie:
+  - Kliknięcie "+ Dodaj czas" → Modal wyboru/tworzenia zadania
+  - Wybór istniejącego zadania LUB utworzenie nowego
+  - Automatyczne otwarcie modala sesji czasowych
+  - Dodanie nowej sesji (data, start, end)
+  - Walidacja i zapis → Odświeżenie podsumowania
 
 **Przypadki specjalne:**
 - Konflikt timerów (409) → Modal z opcjami
@@ -188,6 +198,8 @@ Register ───────────> Dashboard
 - **Create Task Modal** - Formularz tworzenia zadania
 - **Edit Task Modal** - Edycja szczegółów zadania i przegląd historii sesji
 - **Edit Time Entry Modal** - Edycja pojedynczej sesji czasowej
+- **Select Or Create Task Modal** - Wybór istniejącego zadania lub utworzenie nowego (w Summaries)
+- **Add Time Entry Modal** - Dodawanie nowej sesji czasowej z datą, start i end time
 - **Recovery Modal** - Obsługa aktywnego timera przy starcie aplikacji
 - **Confirmation Dialogs** - Potwierdzenia dla destructive actions (Complete, Delete)
 - **Conflict Modal** - Obsługa konfliktu aktywnych timerów
@@ -195,7 +207,8 @@ Register ───────────> Dashboard
 ### 5.4 Summaries
 - **Hero Card** - Grand total czasu dla wybranego dnia
 - **Date Navigation** - Date picker i quick navigation (previous/today/next)
-- **Task Summary Item** - Rozwijalna karta z listą sesji
+- **Add Time Button** - Przycisk "+ Dodaj czas" do ręcznego dodawania sesji
+- **Task Summary Item** - Rozwijalna karta z listą sesji (klikalna, otwiera modal sesji)
 
 ### 5.5 UI Feedback
 - **Empty State** - Komunikat i CTA gdy brak danych

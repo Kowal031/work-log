@@ -234,31 +234,88 @@ Zgodnie z `US-007`, użytkownik musi mieć możliwość edycji istniejących wpi
 ## 13. Ręczne Dodawanie Czasu (Faza 3)
 
 ### 13.1. Przegląd
-Użytkownik powinien mieć możliwość ręcznego dodania wpisu czasowego dla dowolnego aktywnego zadania w kontekście wybranego w podsumowaniu dnia.
+Użytkownik powinien mieć możliwość ręcznego dodania wpisu czasowego dla dowolnego aktywnego zadania lub całkowicie nowego zadania w kontekście wybranego w podsumowaniu dnia.
 
 ### 13.2. Struktura komponentów
 ```
 /src/components/summaries/SummariesView.tsx
-└── /src/components/summaries/AddManualTimeButton.tsx
-    └── /src/components/summaries/AddManualTimeModal.tsx
+└── /src/components/summaries/AddTimeButton.tsx
+    └── /src/components/summaries/SelectOrCreateTaskModal.tsx
+        └── /src/components/summaries/EditTaskModalSummary.tsx (rozszerzony)
+            └── /src/components/summaries/AddTimeEntryModal.tsx
 ```
 
 ### 13.3. Szczegóły komponentów
 
-#### `AddManualTimeButton.tsx`
-- **Opis komponentu:** Prosty przycisk (np. z ikoną "+") umieszczony w `SummariesView`, który otwiera `AddManualTimeModal`.
+#### `AddTimeButton.tsx`
+- **Opis komponentu:** Prosty przycisk (np. z ikoną "+") umieszczony w `SummariesView`, który otwiera `SelectOrCreateTaskModal`.
+- **Lokalizacja:** Obok `DateSelector` w górnej części widoku.
 
-#### `AddManualTimeModal.tsx`
-- **Opis komponentu:** Modal z formularzem do ręcznego dodawania czasu.
+#### `SelectOrCreateTaskModal.tsx`
+- **Opis komponentu:** Modal z dwoma opcjami: wybór istniejącego zadania lub utworzenie nowego.
 - **Główne elementy:**
-    - `Select`/`Combobox` do wyboru zadania (z listy aktywnych zadań).
-    - `DatePicker` (domyślnie ustawiony na `selectedDate` z widoku podsumowania).
-    - `TimePicker` dla czasu rozpoczęcia i zakończenia.
-- **Walidacja:** Wszystkie pola wymagane, czas zakończenia musi być późniejszy niż czas rozpoczęcia.
+    - Radio group lub tabs: "Wybierz zadanie" vs "Utwórz nowe"
+    - `Select`/`Combobox` do wyboru zadania (z listy aktywnych zadań)
+    - LUB `TaskForm` do utworzenia nowego zadania (nazwa + opis)
+- **Propsy:**
+    ```typescript
+    interface SelectOrCreateTaskModalProps {
+      isOpen: boolean;
+      onClose: () => void;
+      onTaskSelected: (taskId: string, taskName: string) => void;
+      selectedDate: Date;
+    }
+    ```
+- **Workflow:**
+    1. Użytkownik wybiera opcję (istniejące/nowe)
+    2. Dla istniejącego: wybiera z listy → `onTaskSelected(taskId, taskName)`
+    3. Dla nowego: wypełnia formularz → tworzy zadanie (POST /api/tasks) → `onTaskSelected(newTaskId, taskName)`
+    4. Modal się zamyka, automatycznie otwiera się `EditTaskModalSummary` z opcją dodawania sesji
+
+#### `EditTaskModalSummary.tsx` (rozszerzenie istniejącego)
+- **Nowa funkcjonalność:** Przycisk "+ Dodaj sesję" w nagłówku listy sesji
+- **Obsługiwane interakcje:** Kliknięcie otwiera `AddTimeEntryModal`
+
+#### `AddTimeEntryModal.tsx`
+- **Opis komponentu:** Modal z formularzem do dodawania nowej sesji czasowej.
+- **Główne elementy:**
+    - `DatePicker` (domyślnie: `selectedDate` z widoku Summaries, edytowalny)
+    - `Input[type="datetime-local"]` dla start_time
+    - `Input[type="datetime-local"]` dla end_time
+    - Kalkulacja i wyświetlenie czasu trwania
+- **Propsy:**
+    ```typescript
+    interface AddTimeEntryModalProps {
+      isOpen: boolean;
+      onClose: () => void;
+      taskId: string;
+      taskName: string;
+      initialDate: Date;
+      onSave: (data: { start_time: string; end_time: string }) => Promise<void>;
+    }
+    ```
+- **Walidacja:** 
+    - Wszystkie pola wymagane
+    - end_time > start_time
+    - Czasy nie mogą być w przyszłości
 
 ### 13.4. Integracja API
 - `GET /api/tasks?status=active`: Pobranie listy aktywnych zadań do wyboru w modalu.
-- `POST /api/tasks/{taskId}/time-entries`: Utworzenie nowego wpisu czasowego (endpoint do zaimplementowania w backendzie).
+- `POST /api/tasks`: Utworzenie nowego zadania.
+- `POST /api/tasks/{taskId}/time-entries`: Utworzenie nowego wpisu czasowego.
+
+### 13.5. Przepływ użytkownika
+1. Summaries → Kliknięcie "+ Dodaj czas"
+2. `SelectOrCreateTaskModal` otwiera się
+3. Użytkownik wybiera istniejące zadanie LUB tworzy nowe
+4. Po wyborze/utworzeniu → modal zamyka się
+5. Automatycznie otwiera się `EditTaskModalSummary` dla wybranego zadania
+6. W modalu sesji użytkownik klika "+ Dodaj sesję"
+7. `AddTimeEntryModal` otwiera się z formularzem
+8. Użytkownik wypełnia date, start_time, end_time
+9. Walidacja → Zapis (POST)
+10. Modale zamykają się
+11. Podsumowanie odświeża się automatycznie (`refetch()`)
 
 ## 14. Finalizacja (Faza 4)
 

@@ -22,6 +22,7 @@ Podczas pracy zdalnej lub długotrwałej pracy przy komputerze trudno jest świa
   - Zatrzymanie licznika automatycznie tworzy wpis czasowy (sesję pracy) dla danego zadania.
 - F-04: Ręczna edycja czasu:
   - Możliwość ręcznej edycji istniejących wpisów czasowych (zmiana daty, godzin i minut trwania sesji).
+  - Możliwość dodawania nowych wpisów czasowych z widoku podsumowań (wybór istniejącego zadania lub utworzenie nowego).
 - F-05: Podsumowanie i historia:
   - Widok dziennego podsumowania zawierający listę zadań z łącznym czasem pracy w danym dniu oraz sumę wszystkich przepracowanych godzin.
   - Dostęp do historii pracy poprzez interfejs kalendarza, umożliwiający nawigację po poszczególnych dniach i miesiącach.
@@ -102,6 +103,18 @@ Następujące funkcjonalności nie wchodzą w zakres MVP i nie będą implemento
   - Każdy wpis na liście ma opcję "Edytuj".
   - Użytkownik może zmienić datę oraz czas trwania (godziny i minuty) danej sesji.
   - Zmiany są zapisywane i wpływają na ogólne podsumowania czasu.
+
+- ID: US-007a
+- Tytuł: Ręczne dodawanie czasu w widoku podsumowań
+- Opis: Jako użytkownik przeglądający podsumowania, chcę móc ręcznie dodać czas pracy dla istniejącego lub nowego zadania bezpośrednio z widoku podsumowań.
+- Kryteria akceptacji:
+  - W widoku podsumowań dostępny jest przycisk "+ Dodaj czas".
+  - Po kliknięciu otwiera się modal z możliwością wyboru istniejącego aktywnego zadania lub utworzenia nowego.
+  - Jeśli użytkownik wybiera "Utwórz nowe zadanie", wyświetlany jest formularz z polami: nazwa (wymagane) i opis (opcjonalne).
+  - Po wyborze/utworzeniu zadania, automatycznie otwiera się modal do zarządzania sesjami czasowymi dla tego zadania.
+  - W modalu sesji użytkownik może dodać nową sesję, podając datę, czas rozpoczęcia i zakończenia.
+  - Walidacja: czas zakończenia musi być późniejszy niż czas rozpoczęcia.
+  - Po zapisaniu nowej sesji, podsumowanie dla wybranego dnia zostaje automatycznie odświeżone.
 
 - ID: US-008
 - Tytuł: Archiwizacja ukończonego zadania

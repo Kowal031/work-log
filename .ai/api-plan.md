@@ -150,6 +150,27 @@
   - **Success**: `200 OK`
   - **Errors**: `401 Unauthorized`, `404 Not Found`
 
+- **POST** `/api/tasks/{taskId}/time-entries`
+  - **Description**: Manually creates a new time entry for a task with specified start and end times.
+  - **Request Body**:
+    ```json
+    {
+      "start_time": "timestamp",
+      "end_time": "timestamp"
+    }
+    ```
+  - **Response Body**:
+    ```json
+    {
+      "id": "uuid",
+      "task_id": "uuid",
+      "start_time": "timestamp",
+      "end_time": "timestamp"
+    }
+    ```
+  - **Success**: `201 Created`
+  - **Errors**: `400 Bad Request` (Validation: end_time > start_time, no future times), `401 Unauthorized`, `404 Not Found`
+
 - **PATCH** `/api/tasks/{taskId}/time-entries/{timeEntryId}`
   - **Description**: Manually edits an existing time entry.
   - **Request Body**:
