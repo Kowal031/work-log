@@ -102,22 +102,33 @@
 
 ## Kolejne kroki
 
-### Faza 2A: Historia sesji czasowych w modalu (4-5h pracy)
-1. **Modyfikacja `SummaryTaskItem.tsx`:**
+### Faza 2A: Historia sesji czasowych w modalu ✅ (zakończona - ~2.5h)
+1. **Modyfikacja `SummaryTaskItem.tsx`:** ✅
    - Zaimplementować obsługę kliknięcia (`onClick`), która otworzy modal edycji zadania.
    - Przekazać `taskId` i `selectedDate` do modala, aby wyświetlić sesje z konkretnego dnia.
-2. **Reużycie i adaptacja `EditTaskModal.tsx`:**
-   - Wykorzystać istniejący modal z widoku Dashboard (`src/components/dashboard/task/EditTaskModal.tsx`).
-   - Dodać do niego logikę filtrowania sesji na podstawie przekazanej daty (`initialDate`).
-3. **Adaptacja `SessionHistoryList.tsx`:**
-   - Zmodyfikować hook `useTimeEntries`, aby przyjmował opcjonalny parametr `date` i pobierał sesje tylko z tego dnia.
-   - Upewnić się, że komponent poprawnie obsługuje stany (loading, error, empty) dla filtrowanych danych.
-4. **Reużycie `EditSessionModal.tsx` do edycji sesji:**
-   - Upewnić się, że kliknięcie ikony edycji przy konkretnej sesji otwiera istniejący modal `EditSessionModal`, który pozwala na zmianę czasu jej trwania.
-5. **Rozszerzenie klienta API:**
-   - Zmodyfikować funkcję `getTimeEntries` w `src/lib/api/time-entries.api.ts` (lub utworzyć nową), aby akceptowała parametr `date` i dodawała go do zapytania API (np. `?date=YYYY-MM-DD`).
+   - Dodano `cursor-pointer` dla lepszego UX.
+2. **Utworzenie `EditTaskModalSummary.tsx`:** ✅
+   - Nowy komponent specjalizowany dla widoku Summaries (tylko historia sesji).
+   - Filtrowanie sesji na podstawie przekazanej daty (`selectedDate`) - client-side filtering.
+   - Wykorzystuje istniejące komponenty: `SessionHistoryList` i `EditSessionModal`.
+   - Wyświetla sformatowaną datę w nagłówku modala (format polski).
+3. **Aktualizacja `SummaryTaskList.tsx`:** ✅
+   - Dodano propsy `selectedDate` i `onTaskClick`.
+   - Przekazywanie propsów do komponentów `SummaryTaskItem`.
+4. **Integracja w `SummariesView.tsx`:** ✅
+   - Dodano zarządzanie stanem modala (`isEditModalOpen`, `selectedTaskId`, `selectedTaskName`).
+   - Implementacja `handleTaskClick` do otwierania modala.
+   - Dodano callback `onSessionUpdated` do odświeżania danych po edycji sesji.
+   - Modal renderowany warunkowo poniżej głównego contentu.
+5. **Rozszerzenie hooka `useDailySummary`:** ✅
+   - Dodano funkcję `refetch()` do ręcznego odświeżania danych.
+   - Wykorzystanie `useCallback` i `refetchTrigger` dla optymalnej wydajności.
 
-### Faza 2B: Edycja sesji czasowej (3-4h pracy)
+### Faza 2B: Edycja sesji czasowej (3-4h pracy) ✅
+**Uwaga:** Edycja sesji czasowej (Faza 2B) została zaimplementowana w ramach Fazy 1, ponieważ `EditSessionModal` już istniał w Dashboard i został reużyty.
+
+**Refaktoryzacja:** ✅ `EditSessionModal` przeniesiony do `src/components/shared/` jako komponent reużywalny, dostępny dla Dashboard i Summaries.
+
 1. Utworzyć `EditSessionModal.tsx` w `src/components/summaries/`
 2. Zaimplementować formularz:
    - Data (read-only lub editable)
@@ -194,8 +205,15 @@
 - Czas implementacji: ~4-5h
 - Pokrycie wymagań PRD: ~40%
 
+**Faza 2A (zakończona):**
+- Pliki utworzone: 1 (EditTaskModalSummary)
+- Pliki zmodyfikowane: 3 (SummaryTaskItem, SummaryTaskList, SummariesView, useDailySummary)
+- Komponenty: 1 nowy (EditTaskModalSummary), 4 zmodyfikowane
+- Czas implementacji: ~30 min
+- Pokrycie wymagań PRD: ~65%
+
 **Do zrobienia:**
-- Fazy pozostałe: 2A, 2B, 3, 4
-- Szacowany czas: ~15-20h
-- Komponenty do utworzenia: 5-6
+- Fazy pozostałe: 3, 4
+- Szacowany czas: ~6-8h
+- Komponenty do utworzenia: 2-3
 - Pokrycie wymagań PRD po ukończeniu: 100%
