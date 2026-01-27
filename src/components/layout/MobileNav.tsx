@@ -31,9 +31,9 @@ export function MobileNav({ isOpen, onClose, currentPath }: MobileNavProps) {
           </a>
 
           <a
-            href="/summary"
+            href="/summaries"
             className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${
-              isActive("/summary") ? "bg-primary text-primary-foreground" : "hover:bg-accent"
+              isActive("/summaries") ? "bg-primary text-primary-foreground" : "hover:bg-accent"
             }`}
             onClick={onClose}
           >

@@ -33,9 +33,9 @@ export function TopNavigationBar({ currentPath }: TopNavigationBarProps) {
                 Pulpit
               </a>
               <a
-                href="/summary"
+                href="/summaries"
                 className={`text-sm font-medium transition-colors hover:text-primary ${
-                  isActive("/summary") ? "text-foreground" : "text-muted-foreground"
+                  isActive("/summaries") ? "text-foreground" : "text-muted-foreground"
                 }`}
               >
                 Podsumowania

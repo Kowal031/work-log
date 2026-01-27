@@ -1,0 +1,15 @@
+---
+import Layout from "@/layouts/Layout.astro";
+import SummariesView from "@/components/summaries/SummariesView";
+
+const supabase = Astro.locals.supabase;
+const { data } = await supabase.auth.getUser();
+
+if (!data?.user) {
+  return Astro.redirect("/");
+}
+---
+
+<Layout title="Podsumowanie">
+  <SummariesView client:load />
+</Layout>
