@@ -188,3 +188,81 @@ Logika pobierania danych oraz zarządzanie stanem zostaną wyizolowane w dedykow
     - Użyj Tailwind CSS do ostylowania komponentów zgodnie z planem UI.
     - Upewnij się, że stany ładowania (skeleton) i puste są poprawnie zaimplementowane.
     - Przetestuj ręcznie wszystkie interakcje użytkownika i scenariusze błędów.
+
+## 12. Historia i Edycja Sesji Czasowych (Faza 2)
+
+### 12.1. Przegląd
+Zgodnie z `US-007`, użytkownik musi mieć możliwość edycji istniejących wpisów czasowych. Kliknięcie na `SummaryTaskItem` otworzy modal, w którym wyświetlona zostanie historia sesji dla danego zadania z wybranego dnia. W tym modalu użytkownik będzie mógł edytować lub usuwać poszczególne sesje.
+
+### 12.2. Struktura komponentów
+```
+/src/components/summaries/SummaryTaskItem.tsx
+└── /src/components/dashboard/task/EditTaskModal.tsx (Reużycie lub adaptacja)
+    ├── /src/components/dashboard/task/SessionHistoryList.tsx
+    │   └── /src/components/dashboard/task/SessionHistoryItem.tsx (Adaptacja)
+    └── /src/components/dashboard/task/EditSessionModal.tsx
+```
+*Uwaga: Plan zakłada maksymalne reużycie istniejących komponentów z widoku Dashboard.*
+
+### 12.3. Szczegóły komponentów
+
+#### `SummaryTaskItem.tsx` (Modyfikacja)
+- **Obsługiwane interakcje:** Kliknięcie na komponent otworzy `EditTaskModal`, przekazując `taskId` i `selectedDate`.
+
+#### `EditTaskModal.tsx` (Reużycie)
+- **Opis komponentu:** Istniejący modal z Dashboard, który zostanie zaadaptowany do wyświetlania sesji z konkretnego dnia.
+- **Propsy (nowe/zmodyfikowane):**
+    ```typescript
+    interface EditTaskModalProps {
+      // ... istniejące propsy
+      initialDate?: Date; // Aby filtrować sesje do wybranego dnia
+    }
+    ```
+
+#### `SessionHistoryList.tsx` (Reużycie)
+- **Opis komponentu:** Komponent renderujący listę sesji. Będzie wymagał modyfikacji hooka `useTimeEntries` aby akceptował datę.
+- **Hook `useTimeEntries(taskId, date)`:** Należy zmodyfikować, aby pobierał sesje dla konkretnego zadania i dnia.
+
+#### `EditSessionModal.tsx` (Reużycie)
+- **Opis komponentu:** Modal do edycji pojedynczej sesji czasowej. Powinien być gotowy do użycia bez większych zmian.
+
+### 12.4. Integracja API
+- `GET /api/tasks/{taskId}/time-entries?date=YYYY-MM-DD`: Pobranie sesji dla zadania z danego dnia.
+- `PATCH /api/tasks/{taskId}/time-entries/{timeEntryId}`: Aktualizacja sesji.
+- `DELETE /api/tasks/{taskId}/time-entries/{timeEntryId}`: Usunięcie sesji.
+
+## 13. Ręczne Dodawanie Czasu (Faza 3)
+
+### 13.1. Przegląd
+Użytkownik powinien mieć możliwość ręcznego dodania wpisu czasowego dla dowolnego aktywnego zadania w kontekście wybranego w podsumowaniu dnia.
+
+### 13.2. Struktura komponentów
+```
+/src/components/summaries/SummariesView.tsx
+└── /src/components/summaries/AddManualTimeButton.tsx
+    └── /src/components/summaries/AddManualTimeModal.tsx
+```
+
+### 13.3. Szczegóły komponentów
+
+#### `AddManualTimeButton.tsx`
+- **Opis komponentu:** Prosty przycisk (np. z ikoną "+") umieszczony w `SummariesView`, który otwiera `AddManualTimeModal`.
+
+#### `AddManualTimeModal.tsx`
+- **Opis komponentu:** Modal z formularzem do ręcznego dodawania czasu.
+- **Główne elementy:**
+    - `Select`/`Combobox` do wyboru zadania (z listy aktywnych zadań).
+    - `DatePicker` (domyślnie ustawiony na `selectedDate` z widoku podsumowania).
+    - `TimePicker` dla czasu rozpoczęcia i zakończenia.
+- **Walidacja:** Wszystkie pola wymagane, czas zakończenia musi być późniejszy niż czas rozpoczęcia.
+
+### 13.4. Integracja API
+- `GET /api/tasks?status=active`: Pobranie listy aktywnych zadań do wyboru w modalu.
+- `POST /api/tasks/{taskId}/time-entries`: Utworzenie nowego wpisu czasowego (endpoint do zaimplementowania w backendzie).
+
+## 14. Finalizacja (Faza 4)
+
+### 14.1. Poprawki
+- **Lokalizacja kalendarza:** Upewnić się, że komponent `Calendar` używa poprawnego obiektu `locale` z `date-fns/locale/pl` zamiast stringa `"pl"`.
+- **Testy E2E:** Przeprowadzenie testów wszystkich interakcji: zmiana daty, otwieranie modali, edycja, usuwanie i dodawanie wpisów.
+- **Responsywność:** Sprawdzenie wyglądu i działania na urządzeniach mobilnych.
