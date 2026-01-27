@@ -4,6 +4,7 @@ import type {
   StopTimeEntryCommand,
   TimeEntryResponseDto,
   UpdateTimeEntryCommand,
+  CreateTimeEntryCommand,
 } from "../../types";
 
 /**
@@ -200,6 +201,39 @@ export async function updateTimeEntry(
 
   if (!data) {
     throw new Error("No data returned from time entry update");
+  }
+
+  return data;
+}
+
+/**
+ * Create a new time entry manually with start and end times
+ * @param supabase - Authenticated Supabase client
+ * @param command - Create time entry command with user_id, task_id, start_time, and end_time
+ * @returns TimeEntryResponseDto with the created time entry data
+ * @throws Error if time entry creation fails
+ */
+export async function createTimeEntry(
+  supabase: SupabaseClient,
+  command: CreateTimeEntryCommand
+): Promise<TimeEntryResponseDto> {
+  const { data, error } = await supabase
+    .from("time_entries")
+    .insert({
+      user_id: command.user_id,
+      task_id: command.task_id,
+      start_time: command.start_time,
+      end_time: command.end_time,
+    })
+    .select("id, task_id, start_time, end_time")
+    .single();
+
+  if (error) {
+    throw new Error(`Failed to create time entry: ${error.message}`);
+  }
+
+  if (!data) {
+    throw new Error("No data returned from time entry creation");
   }
 
   return data;

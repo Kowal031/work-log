@@ -131,6 +131,15 @@ export interface UpdateTimeEntryRequestDto {
 }
 
 /**
+ * Request DTO for manually creating a new time entry
+ * POST /api/tasks/{taskId}/time-entries
+ */
+export interface CreateTimeEntryRequestDto {
+  start_time: string;
+  end_time: string;
+}
+
+/**
  * Response DTO for active timer check
  * GET /api/tasks/active-timer
  * Returns null if no active timer exists
@@ -235,6 +244,17 @@ export interface UpdateTimeEntryCommand {
   time_entry_id: string;
   start_time?: string;
   end_time?: string;
+}
+
+/**
+ * Command for manually creating a time entry
+ * Includes user_id which is added by the service layer
+ */
+export interface CreateTimeEntryCommand {
+  user_id: string;
+  task_id: string;
+  start_time: string;
+  end_time: string;
 }
 
 /**

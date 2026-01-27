@@ -168,3 +168,26 @@ export async function updateTimeEntry(
 
   return response.json();
 }
+
+/**
+ * Create a new time entry manually with start and end times
+ */
+export async function createTimeEntry(
+  taskId: string,
+  data: { start_time: string; end_time: string }
+): Promise<TimeEntryResponseDto> {
+  const response = await fetch(`/api/tasks/${taskId}/time-entries`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(data),
+  });
+
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.message || "Failed to create time entry");
+  }
+
+  return response.json();
+}
