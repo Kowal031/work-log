@@ -28,10 +28,27 @@ export default function LoginForm() {
     setIsLoading(true);
 
     try {
-      // TODO: Implementacja wysyłki do /api/auth/login
-      console.log("Login attempt:", { email });
+      const response = await fetch("/api/auth/login", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ email, password }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        // Handle error response
+        setError(data.message || "Wystąpił błąd podczas logowania");
+        return;
+      }
+
+      // Success - redirect to home page
+      window.location.href = data.redirectUrl || "/";
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Wystąpił błąd podczas logowania");
+      console.error("Login error:", err);
+      setError("Wystąpił błąd połączenia. Spróbuj ponownie.");
     } finally {
       setIsLoading(false);
     }
@@ -77,7 +94,7 @@ export default function LoginForm() {
               required
             />
             <div className="text-sm">
-              <a href="/password-recovery" className="text-primary hover:underline">
+              <a href="/auth/password-recovery" className="text-primary hover:underline">
                 Zapomniałeś hasła?
               </a>
             </div>
@@ -91,7 +108,7 @@ export default function LoginForm() {
 
           <p className="text-sm text-muted-foreground text-center">
             Nie masz konta?{" "}
-            <a href="/register" className="text-primary hover:underline">
+            <a href="/auth/register" className="text-primary hover:underline">
               Zarejestruj się
             </a>
           </p>

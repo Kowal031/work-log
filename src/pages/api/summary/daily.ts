@@ -92,9 +92,9 @@ export const GET: APIRoute = async ({ url, locals }) => {
   // Step 6: Call service to get summary
   try {
     const summary: DailySummaryResponseDto = await getDailySummary(
-      locals.supabase, 
-      user.id, 
-      dateFrom, 
+      locals.supabase,
+      user.id,
+      dateFrom,
       dateTo,
       validatedQuery.timezone_offset
     );
