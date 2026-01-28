@@ -1,13 +1,15 @@
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
-import { BarChart3, Home } from "lucide-react";
+import LogoutButton from "@/components/auth/LogoutButton";
+import { BarChart3, Home, User } from "lucide-react";
 
 interface MobileNavProps {
   isOpen: boolean;
   onClose: () => void;
   currentPath: string;
+  userEmail?: string;
 }
 
-export function MobileNav({ isOpen, onClose, currentPath }: MobileNavProps) {
+export function MobileNav({ isOpen, onClose, currentPath, userEmail }: MobileNavProps) {
   const isActive = (path: string) => currentPath === path;
 
   return (
@@ -41,8 +43,21 @@ export function MobileNav({ isOpen, onClose, currentPath }: MobileNavProps) {
             <span className="font-medium">Podsumowania</span>
           </a>
 
-          {/* Divider */}
-          <div className="border-t my-2" />
+          {/* User Section - Only for authenticated users */}
+          {userEmail && (
+            <>
+              {/* Divider */}
+              <div className="border-t my-2" />
+
+              <div className="px-4 py-2">
+                <div className="flex items-center gap-2 text-sm text-muted-foreground mb-3">
+                  <User className="h-4 w-4" />
+                  <span>{userEmail}</span>
+                </div>
+                <LogoutButton variant="outline" size="default" className="w-full" />
+              </div>
+            </>
+          )}
         </div>
       </SheetContent>
     </Sheet>

@@ -1,13 +1,15 @@
 import { MobileNav } from "@/components/layout/MobileNav";
 import { Button } from "@/components/ui/button";
-import { Menu } from "lucide-react";
+import LogoutButton from "@/components/auth/LogoutButton";
+import { Menu, User } from "lucide-react";
 import { useState } from "react";
 
 interface TopNavigationBarProps {
   currentPath: string;
+  userEmail?: string;
 }
 
-export function TopNavigationBar({ currentPath }: TopNavigationBarProps) {
+export function TopNavigationBar({ currentPath, userEmail }: TopNavigationBarProps) {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   const isActive = (path: string) => currentPath === path;
@@ -40,6 +42,17 @@ export function TopNavigationBar({ currentPath }: TopNavigationBarProps) {
               >
                 Podsumowania
               </a>
+
+              {/* User Section - Only for authenticated users */}
+              {userEmail && (
+                <div className="flex items-center gap-3 ml-4 pl-4 border-l">
+                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                    <User className="h-4 w-4" />
+                    <span>{userEmail}</span>
+                  </div>
+                  <LogoutButton variant="outline" size="sm" />
+                </div>
+              )}
             </div>
 
             {/* Mobile Menu Button */}
@@ -57,7 +70,12 @@ export function TopNavigationBar({ currentPath }: TopNavigationBarProps) {
       </nav>
 
       {/* Mobile Navigation */}
-      <MobileNav isOpen={isMobileMenuOpen} onClose={() => setIsMobileMenuOpen(false)} currentPath={currentPath} />
+      <MobileNav
+        isOpen={isMobileMenuOpen}
+        onClose={() => setIsMobileMenuOpen(false)}
+        currentPath={currentPath}
+        userEmail={userEmail}
+      />
     </>
   );
 }

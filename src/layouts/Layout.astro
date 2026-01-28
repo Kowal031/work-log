@@ -10,6 +10,9 @@ interface Props {
 
 const { title = "WorkLog", showNav = true } = Astro.props;
 const currentPath = Astro.url.pathname;
+
+// Get user from locals (set by middleware)
+const user = Astro.locals.user;
 ---
 
 <!doctype html>
@@ -22,7 +25,7 @@ const currentPath = Astro.url.pathname;
     <title>{title}</title>
   </head>
   <body>
-    {showNav && <TopNavigationBar client:load currentPath={currentPath} />}
+    {showNav && <TopNavigationBar client:load currentPath={currentPath} userEmail={user?.email} />}
     <slot />
     <Toaster client:load />
   </body>
