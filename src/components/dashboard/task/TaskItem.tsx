@@ -35,7 +35,9 @@ export const TaskItem = memo(function TaskItem({
   };
 
   return (
-    <Card className={`h-full ${isCurrentTaskActive ? "border-primary bg-primary/5" : ""}`}>
+    <Card
+      className={`h-full flex flex-col justify-between ${isCurrentTaskActive ? "border-primary bg-primary/5" : ""}`}
+    >
       <CardHeader>
         <div className="flex items-start justify-between gap-4">
           <div className="flex-1 min-w-0">
