@@ -94,7 +94,7 @@ export default function LoginForm() {
               required
             />
             <div className="text-sm">
-              <a href="/auth/password-recovery" className="text-primary hover:underline">
+              <a href="/password-recovery" className="text-primary hover:underline">
                 Zapomniałeś hasła?
               </a>
             </div>
@@ -108,7 +108,7 @@ export default function LoginForm() {
 
           <p className="text-sm text-muted-foreground text-center">
             Nie masz konta?{" "}
-            <a href="/auth/register" className="text-primary hover:underline">
+            <a href="/register" className="text-primary hover:underline">
               Zarejestruj się
             </a>
           </p>

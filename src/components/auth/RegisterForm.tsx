@@ -10,10 +10,12 @@ export default function RegisterForm() {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
+    setSuccess(false);
 
     // Walidacja podstawowa
     if (!email || !password || !confirmPassword) {
@@ -39,10 +41,31 @@ export default function RegisterForm() {
     setIsLoading(true);
 
     try {
-      // TODO: Implementacja wysyłki do /api/auth/register
-      console.log("Register attempt:", { email });
+      const response = await fetch("/api/auth/register", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ email, password, confirmPassword }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        // Handle error response
+        setError(data.message || "Wystąpił błąd podczas rejestracji");
+        return;
+      }
+
+      // Success - show success message and redirect after delay
+      setSuccess(true);
+
+      setTimeout(() => {
+        window.location.href = data.redirectUrl || "/login";
+      }, 2000);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Wystąpił błąd podczas rejestracji");
+      console.error("Registration error:", err);
+      setError("Wystąpił błąd połączenia. Spróbuj ponownie.");
     } finally {
       setIsLoading(false);
     }
@@ -62,6 +85,14 @@ export default function RegisterForm() {
             </div>
           )}
 
+          {success && (
+            <div className="bg-green-500/10 border border-green-500 rounded-lg p-3">
+              <p className="text-sm text-green-600 dark:text-green-400">
+                ✓ Konto zostało utworzone pomyślnie! Przekierowywanie do logowania...
+              </p>
+            </div>
+          )}
+
           <div className="space-y-2">
             <Label htmlFor="email">Email</Label>
             <Input
@@ -70,7 +101,7 @@ export default function RegisterForm() {
               placeholder="twoj@email.com"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              disabled={isLoading}
+              disabled={isLoading || success}
               required
             />
           </div>
@@ -83,7 +114,7 @@ export default function RegisterForm() {
               placeholder="••••••••"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              disabled={isLoading}
+              disabled={isLoading || success}
               required
             />
             <p className="text-xs text-muted-foreground">Minimum 8 znaków</p>
@@ -97,15 +128,15 @@ export default function RegisterForm() {
               placeholder="••••••••"
               value={confirmPassword}
               onChange={(e) => setConfirmPassword(e.target.value)}
-              disabled={isLoading}
+              disabled={isLoading || success}
               required
             />
           </div>
         </CardContent>
 
         <CardFooter className="flex flex-col gap-4 mt-4">
-          <Button type="submit" className="w-full" disabled={isLoading}>
-            {isLoading ? "Tworzenie konta..." : "Zarejestruj się"}
+          <Button type="submit" className="w-full" disabled={isLoading || success}>
+            {isLoading ? "Tworzenie konta..." : success ? "Konto utworzone!" : "Zarejestruj się"}
           </Button>
 
           <p className="text-sm text-muted-foreground text-center">

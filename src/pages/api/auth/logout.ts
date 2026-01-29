@@ -23,7 +23,7 @@ export const POST: APIRoute = async ({ locals, redirect }) => {
       });
     }
 
-    return redirect("/auth/login");
+    return redirect("/login");
   } catch (err) {
     console.error("Unexpected logout error:", err);
     return new Response(JSON.stringify({ error: "Unexpected error during logout" }), {

@@ -29,12 +29,12 @@ export default function LogoutButton({ variant = "ghost", size = "default", clas
       }
 
       // Redirect is handled by the API endpoint
-      window.location.href = "/auth/login";
+      window.location.href = "/login";
     } catch (err) {
       console.error("Logout error:", err);
       setIsLoading(false);
       // Still redirect on error to ensure user is logged out
-      window.location.href = "/auth/login";
+      window.location.href = "/login";
     }
   };
 

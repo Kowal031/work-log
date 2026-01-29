@@ -5,10 +5,10 @@ import { createSupabaseServerInstance } from "../db/supabase.client.ts";
 // Public paths - Auth API endpoints & Server-Rendered Astro Pages
 const PUBLIC_PATHS = [
   // Server-Rendered Astro Pages
-  "/auth/login",
-  "/auth/register",
-  "/auth/password-recovery",
-  "/auth/update-password",
+  "/login",
+  "/register",
+  "/password-recovery",
+  "/update-password",
   // Auth API endpoints
   "/api/auth/login",
   "/api/auth/register",
@@ -46,7 +46,7 @@ export const onRequest = defineMiddleware(async ({ locals, cookies, url, request
 
   // Redirect to login for protected routes if not authenticated
   if (!user) {
-    return redirect("/auth/login");
+    return redirect("/login");
   }
 
   return next();
