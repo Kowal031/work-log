@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -10,29 +10,11 @@ export default function UpdatePasswordForm() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
-  const [token, setToken] = useState<string | null>(null);
-
-  useEffect(() => {
-    // Pobierz token z parametrów URL
-    const urlParams = new URLSearchParams(window.location.search);
-    const tokenFromUrl = urlParams.get("token") || urlParams.get("access_token");
-
-    if (!tokenFromUrl) {
-      setError("Brak tokenu dostępu. Link może być nieprawidłowy lub wygasły.");
-    } else {
-      setToken(tokenFromUrl);
-    }
-  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
     setSuccess(false);
-
-    if (!token) {
-      setError("Brak tokenu dostępu");
-      return;
-    }
 
     // Walidacja podstawowa
     if (!password || !confirmPassword) {
@@ -53,15 +35,33 @@ export default function UpdatePasswordForm() {
     setIsLoading(true);
 
     try {
-      // TODO: Implementacja wysyłki do /api/auth/update-password
-      console.log("Update password attempt with token");
+      const response = await fetch("/api/auth/update-password", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ password, confirmPassword }),
+      });
 
-      // Symulacja sukcesu
+      const data = await response.json();
+
+      if (!response.ok) {
+        // Handle error response
+        setError(data.message || "Wystąpił błąd podczas zmiany hasła");
+        return;
+      }
+
+      // Success - show success message and redirect after delay
       setSuccess(true);
       setPassword("");
       setConfirmPassword("");
+
+      setTimeout(() => {
+        window.location.href = data.redirectUrl || "/login";
+      }, 2000);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Wystąpił błąd podczas zmiany hasła");
+      console.error("Update password error:", err);
+      setError("Wystąpił błąd połączenia. Spróbuj ponownie.");
     } finally {
       setIsLoading(false);
     }
@@ -82,11 +82,10 @@ export default function UpdatePasswordForm() {
           )}
 
           {success && (
-            <div className="bg-green-50 dark:bg-green-950 border border-green-200 dark:border-green-800 rounded-lg p-3">
-              <p className="text-sm text-green-800 dark:text-green-200 mb-2">Hasło zostało pomyślnie zmienione!</p>
-              <a href="/login" className="text-sm text-primary hover:underline">
-                Przejdź do logowania
-              </a>
+            <div className="bg-green-500/10 border border-green-500 rounded-lg p-3">
+              <p className="text-sm text-green-600 dark:text-green-400">
+                ✓ Hasło zostało pomyślnie zmienione! Przekierowywanie do logowania...
+              </p>
             </div>
           )}
 
@@ -98,7 +97,7 @@ export default function UpdatePasswordForm() {
               placeholder="••••••••"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              disabled={isLoading || !token || success}
+              disabled={isLoading || success}
               required
             />
             <p className="text-xs text-muted-foreground">Minimum 8 znaków</p>
@@ -112,15 +111,15 @@ export default function UpdatePasswordForm() {
               placeholder="••••••••"
               value={confirmPassword}
               onChange={(e) => setConfirmPassword(e.target.value)}
-              disabled={isLoading || !token || success}
+              disabled={isLoading || success}
               required
             />
           </div>
         </CardContent>
 
         <CardFooter className="flex flex-col gap-4 mt-4">
-          <Button type="submit" className="w-full" disabled={isLoading || !token || success}>
-            {isLoading ? "Zmiana hasła..." : "Zmień hasło"}
+          <Button type="submit" className="w-full" disabled={isLoading || success}>
+            {isLoading ? "Zmiana hasła..." : success ? "Hasło zmienione!" : "Zmień hasło"}
           </Button>
 
           {!success && (

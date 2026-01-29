@@ -29,14 +29,28 @@ export default function PasswordRecoveryForm() {
     setIsLoading(true);
 
     try {
-      // TODO: Implementacja wysyłki do /api/auth/password-recovery
-      console.log("Password recovery attempt:", { email });
+      const response = await fetch("/api/auth/password-recovery", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ email }),
+      });
 
-      // Symulacja sukcesu
+      const data = await response.json();
+
+      if (!response.ok) {
+        // Handle error response
+        setError(data.message || "Wystąpił błąd podczas wysyłania linku");
+        return;
+      }
+
+      // Success - show success message
       setSuccess(true);
       setEmail("");
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Wystąpił błąd podczas wysyłania linku");
+      console.error("Password recovery error:", err);
+      setError("Wystąpił błąd połączenia. Spróbuj ponownie.");
     } finally {
       setIsLoading(false);
     }

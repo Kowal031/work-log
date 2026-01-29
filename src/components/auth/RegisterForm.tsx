@@ -88,7 +88,8 @@ export default function RegisterForm() {
           {success && (
             <div className="bg-green-500/10 border border-green-500 rounded-lg p-3">
               <p className="text-sm text-green-600 dark:text-green-400">
-                ✓ Konto zostało utworzone pomyślnie! Przekierowywanie do logowania...
+                ✓ Konto zostało utworzone pomyślnie, sprawdź swoją skrzynkę email i potwierdź adres email klikając w
+                link aktywacyjny. Przekierowywanie do logowania...
               </p>
             </div>
           )}
