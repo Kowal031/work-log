@@ -18,6 +18,11 @@ const PUBLIC_PATHS = [
 ];
 
 export const onRequest = defineMiddleware(async ({ locals, cookies, url, request, redirect }, next) => {
+  // Skip auth check for public paths
+  if (PUBLIC_PATHS.includes(url.pathname)) {
+    return next();
+  }
+
   // Create Supabase server instance
   const supabase = createSupabaseServerInstance({
     cookies,
@@ -37,11 +42,6 @@ export const onRequest = defineMiddleware(async ({ locals, cookies, url, request
       email: user.email ?? "",
       id: user.id,
     };
-  }
-
-  // Skip auth check for public paths
-  if (PUBLIC_PATHS.includes(url.pathname)) {
-    return next();
   }
 
   // Redirect to login for protected routes if not authenticated

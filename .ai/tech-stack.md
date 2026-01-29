@@ -12,6 +12,17 @@
 # Backend
 - Supabase
   Opis: Kompleksowe rozwiązanie backendowe oparte na PostgreSQL. Zapewnia bazę danych, SDK, uwierzytelnianie użytkowników oraz funkcje BaaS.
+
+# Testing
+- Vitest
+  Opis: Szybki framework do testów jednostkowych i integracyjnych z natywnym wsparciem TypeScript. Używany do testowania serwisów, funkcji pomocniczych oraz logiki biznesowej.
+- React Testing Library
+  Opis: Biblioteka do testowania komponentów React z podejściem zorientowanym na użytkownika (user-centric approach). Zapewnia testowanie interakcji i zachowań komponentów.
+- Playwright
+  Opis: Nowoczesny framework do testów end-to-end (E2E), umożliwiający automatyzację scenariuszy użytkownika w wielu przeglądarkach (Chrome, Firefox, Safari).
+- Mock Service Worker (MSW)
+  Opis: Biblioteka do mockowania żądań API na poziomie sieci, używana w testach integracyjnych do symulacji odpowiedzi backendu bez rzeczywistych wywołań.
+
 # AI
 - Openrouter.ai (integracja)
   Opis: Warstwa pośrednicząca do komunikacji z wieloma modelami (OpenAI, Anthropic, Google itd.), umożliwiająca elastyczny wybór modeli oraz zarządzanie limitami i kosztami API.

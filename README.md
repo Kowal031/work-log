@@ -28,6 +28,12 @@ WorkLog is designed to provide users with a straightforward tool for tracking wo
 ### Backend
 - **Supabase**: An open-source Firebase alternative for database, authentication, and backend services.
 
+### Testing
+- **Vitest**: Fast unit test framework with native TypeScript support for testing services and utilities.
+- **React Testing Library**: For testing React components with a user-centric approach.
+- **Playwright**: End-to-end testing framework for automating user scenarios across multiple browsers.
+- **Mock Service Worker (MSW)**: For mocking API responses in integration tests.
+
 ### AI Integration
 - **Openrouter.ai**: A middleware layer for accessing various large language models.
 
@@ -78,6 +84,8 @@ In the project directory, you can run the following scripts:
 - `npm run dev`: Runs the app in the development mode.
 - `npm run build`: Builds the app for production to the `dist/` folder.
 - `npm run preview`: Serves the production build locally for preview.
+- `npm run test`: Runs unit and integration tests using Vitest.
+- `npm run test:e2e`: Runs end-to-end tests using Playwright.
 - `npm run lint`: Lints the codebase using ESLint.
 - `npm run lint:fix`: Fixes linting errors automatically.
 - `npm run format`: Formats the code using Prettier.
