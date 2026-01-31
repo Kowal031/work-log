@@ -9,7 +9,7 @@ afterEach(() => {
 
 // Mock environment variables
 vi.stubEnv("SUPABASE_URL", "https://test.supabase.co");
-vi.stubEnv("SUPABASE_KEY", "test-key");
+vi.stubEnv("SUPABASE_PUBLIC_KEY", "test-key");
 
 // Mock window.matchMedia
 Object.defineProperty(window, "matchMedia", {

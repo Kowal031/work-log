@@ -18,11 +18,6 @@ const PUBLIC_PATHS = [
 ];
 
 export const onRequest = defineMiddleware(async ({ locals, cookies, url, request, redirect }, next) => {
-  // Skip auth check for public paths
-  if (PUBLIC_PATHS.includes(url.pathname)) {
-    return next();
-  }
-
   // Create Supabase server instance
   const supabase = createSupabaseServerInstance({
     cookies,
@@ -31,6 +26,11 @@ export const onRequest = defineMiddleware(async ({ locals, cookies, url, request
 
   // Make supabase available in locals
   locals.supabase = supabase;
+
+  // Skip auth check for public paths
+  if (PUBLIC_PATHS.includes(url.pathname)) {
+    return next();
+  }
 
   // IMPORTANT: Always get user session first before any other operations
   const {

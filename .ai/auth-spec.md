@@ -107,7 +107,7 @@ Wszystkie endpointy będą miały `export const prerender = false;`.
 
 ## 4. System Autentykacji (Integracja z Supabase)
 
-- **Konfiguracja Supabase:** Klucze `SUPABASE_URL` i `SUPABASE_ANON_KEY` muszą być skonfigurowane jako zmienne środowiskowe w Astro (`.env`).
+- **Konfiguracja Supabase:** Klucze `SUPABASE_URL` i `SUPABASE_PUBLIC_KEY` muszą być skonfigurowane jako zmienne środowiskowe w Astro (`.env`).
 - **Klient Supabase:** Istniejący plik `src/db/supabase.client.ts` będzie używany do tworzenia instancji klienta Supabase. W kontekście serwerowym (middleware, API routes), należy tworzyć klienta, który może operować na cookies (`createSupabaseServerClient`).
 - **Powiązanie danych:** Zgodnie z `F-01`, wszystkie encje (zadania, wpisy czasowe) w bazie danych Supabase muszą mieć kolumnę `user_id` (typu `uuid`), która będzie kluczem obcym do tabeli `auth.users`.
 - **Row Level Security (RLS):** Należy zdefiniować polityki RLS w Supabase, aby zapewnić, że użytkownicy mogą odczytywać i modyfikować tylko własne dane. Podobne polityki muszą zostać utworzone dla wszystkich operacji (UPDATE, DELETE) i wszystkich tabel przechowujących dane użytkownika.
