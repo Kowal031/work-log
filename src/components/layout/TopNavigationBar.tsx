@@ -20,7 +20,7 @@ export function TopNavigationBar({ currentPath, userEmail }: TopNavigationBarPro
         <div className="container mx-auto px-4">
           <div className="flex h-16 items-center justify-between">
             {/* Logo */}
-            <a href="/" className="text-xl font-bold hover:opacity-80 transition-opacity">
+            <a href="/" className="text-xl font-bold hover:opacity-80 transition-opacity" data-testid="nav-logo">
               WorkLog
             </a>
 
@@ -31,6 +31,7 @@ export function TopNavigationBar({ currentPath, userEmail }: TopNavigationBarPro
                 className={`text-sm font-medium transition-colors hover:text-primary ${
                   isActive("/") ? "text-foreground" : "text-muted-foreground"
                 }`}
+                data-testid="nav-dashboard-link"
               >
                 Pulpit
               </a>
@@ -39,6 +40,7 @@ export function TopNavigationBar({ currentPath, userEmail }: TopNavigationBarPro
                 className={`text-sm font-medium transition-colors hover:text-primary ${
                   isActive("/summaries") ? "text-foreground" : "text-muted-foreground"
                 }`}
+                data-testid="nav-summaries-link"
               >
                 Podsumowania
               </a>
@@ -46,7 +48,7 @@ export function TopNavigationBar({ currentPath, userEmail }: TopNavigationBarPro
               {/* User Section - Only for authenticated users */}
               {userEmail && (
                 <div className="flex items-center gap-3 ml-4 pl-4 border-l">
-                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                  <div className="flex items-center gap-2 text-sm text-muted-foreground" data-testid="nav-user-email">
                     <User className="h-4 w-4" />
                     <span>{userEmail}</span>
                   </div>
@@ -62,6 +64,7 @@ export function TopNavigationBar({ currentPath, userEmail }: TopNavigationBarPro
               className="md:hidden"
               onClick={() => setIsMobileMenuOpen(true)}
               aria-label="Otwórz menu"
+              data-testid="nav-mobile-menu-button"
             >
               <Menu className="h-5 w-5" />
             </Button>

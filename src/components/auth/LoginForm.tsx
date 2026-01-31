@@ -14,13 +14,13 @@ export default function LoginForm() {
     e.preventDefault();
     setError(null);
 
-    // Walidacja podstawowa
-    if (!email || !password) {
+    if (!email.trim() || !password.trim()) {
       setError("Wszystkie pola są wymagane");
       return;
     }
 
-    if (!email.includes("@")) {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
       setError("Nieprawidłowy format adresu email");
       return;
     }
@@ -55,15 +55,20 @@ export default function LoginForm() {
   };
 
   return (
-    <Card className="w-full max-w-md">
+    <Card className="w-full max-w-md" data-testid="login-card">
       <CardHeader>
-        <CardTitle className="text-2xl">Logowanie</CardTitle>
-        <CardDescription>Wprowadź swoje dane, aby się zalogować</CardDescription>
+        <CardTitle className="text-2xl" data-testid="login-card-title">
+          Logowanie
+        </CardTitle>
+        <CardDescription data-testid="login-card-description">Wprowadź swoje dane, aby się zalogować</CardDescription>
       </CardHeader>
-      <form onSubmit={handleSubmit}>
+      <form onSubmit={handleSubmit} noValidate>
         <CardContent className="space-y-4 mt-4">
           {error && (
-            <div className="bg-destructive/10 border border-destructive rounded-lg p-3">
+            <div
+              className="bg-destructive/10 border border-destructive rounded-lg p-3"
+              data-testid="login-error-message"
+            >
               <p className="text-sm text-destructive">{error}</p>
             </div>
           )}
@@ -77,7 +82,7 @@ export default function LoginForm() {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               disabled={isLoading}
-              required
+              data-testid="login-email-input"
             />
           </div>
 
@@ -91,10 +96,14 @@ export default function LoginForm() {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               disabled={isLoading}
-              required
+              data-testid="login-password-input"
             />
             <div className="text-sm">
-              <a href="/password-recovery" className="text-primary hover:underline">
+              <a
+                href="/password-recovery"
+                className="text-primary hover:underline"
+                data-testid="login-forgot-password-link"
+              >
                 Zapomniałeś hasła?
               </a>
             </div>
@@ -102,13 +111,13 @@ export default function LoginForm() {
         </CardContent>
 
         <CardFooter className="flex flex-col gap-4 mt-4">
-          <Button type="submit" className="w-full" disabled={isLoading}>
+          <Button type="submit" className="w-full" disabled={isLoading} data-testid="login-submit-button">
             {isLoading ? "Logowanie..." : "Zaloguj się"}
           </Button>
 
           <p className="text-sm text-muted-foreground text-center">
             Nie masz konta?{" "}
-            <a href="/register" className="text-primary hover:underline">
+            <a href="/register" className="text-primary hover:underline" data-testid="login-register-link">
               Zarejestruj się
             </a>
           </p>

@@ -39,7 +39,14 @@ export default function LogoutButton({ variant = "ghost", size = "default", clas
   };
 
   return (
-    <Button variant={variant} size={size} onClick={handleLogout} className={className} disabled={isLoading}>
+    <Button
+      variant={variant}
+      size={size}
+      onClick={handleLogout}
+      className={className}
+      disabled={isLoading}
+      data-testid="nav-logout-button"
+    >
       <LogOut className="h-4 w-4 mr-2" />
       {isLoading ? "Wylogowywanie..." : "Wyloguj"}
     </Button>

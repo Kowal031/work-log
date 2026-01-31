@@ -59,6 +59,11 @@ test('should complete user flow', async ({ page }) => {
 });
 ```
 
+#### Test Plans
+Detailed test plans are available for complex scenarios:
+
+- **Login Test Plan** (`tests/e2e/.ai/e2e-login-test-plan.md`): Comprehensive plan covering login flow, validation, error handling, accessibility, and integration scenarios. Includes 17 test scenarios with detailed steps and expected results.
+
 ## Best Practices
 
 1. **Unit Tests**: Focus on testing individual functions and components in isolation
