@@ -55,8 +55,7 @@ export function EditTaskModal({ isOpen, onClose, onSave, task, hasActiveTimer }:
     try {
       const data = await tasksApi.getTimeEntries(task.id);
       setSessions(data);
-    } catch (err) {
-      const message = err instanceof Error ? err.message : "Failed to fetch sessions";
+    } catch {
       toast.error("Błąd", {
         description: "Nie udało się załadować historii sesji",
       });
@@ -71,20 +70,16 @@ export function EditTaskModal({ isOpen, onClose, onSave, task, hasActiveTimer }:
   };
 
   const handleSaveSession = async (sessionId: string, data: { start_time: string; end_time: string }) => {
-    try {
-      await tasksApi.updateTimeEntry(task.id, sessionId, data);
-      toast.success("Sukces", {
-        description: "Sesja została zaktualizowana",
-      });
-      // Clear highlighted session to prevent re-opening modal
-      setHighlightedSessionId(null);
-      // Refresh sessions
-      await fetchSessions();
-      setIsEditSessionModalOpen(false);
-      setSessionToEdit(null);
-    } catch (err) {
-      throw err; // Let EditSessionModal handle the error
-    }
+    await tasksApi.updateTimeEntry(task.id, sessionId, data);
+    toast.success("Sukces", {
+      description: "Sesja została zaktualizowana",
+    });
+    // Clear highlighted session to prevent re-opening modal
+    setHighlightedSessionId(null);
+    // Refresh sessions
+    await fetchSessions();
+    setIsEditSessionModalOpen(false);
+    setSessionToEdit(null);
   };
 
   return (

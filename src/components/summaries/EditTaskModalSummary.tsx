@@ -11,6 +11,17 @@ import { format } from "date-fns";
 import { pl } from "date-fns/locale";
 import { Plus, CheckCircle } from "lucide-react";
 
+interface ApiError extends Error {
+  code?: string;
+  details?: {
+    day: string;
+    existing_duration_formatted: string;
+    new_duration_formatted: string;
+    total_duration_formatted: string;
+    limit: string;
+  };
+}
+
 interface EditTaskModalSummaryProps {
   isOpen: boolean;
   onClose: () => void;
@@ -95,25 +106,25 @@ export function EditTaskModalSummary({
 
       setIsEditSessionModalOpen(false);
       setSessionToEdit(null);
-    } catch (err: any) {
+    } catch (err) {
       // Check for DailyCapacityExceeded error
-      if (err.code === "DailyCapacityExceeded" && err.details) {
-        const details = err.details as {
-          day: string;
-          existing_duration_formatted: string;
-          new_duration_formatted: string;
-          total_duration_formatted: string;
-          limit: string;
-        };
+      if (err instanceof Error) {
+        const apiErr = err as ApiError;
+        if (apiErr.code === "DailyCapacityExceeded" && apiErr.details) {
+          const details = apiErr.details;
 
-        toast.error("Przekroczono limit czasu", {
-          description: `Dzień ${details.day} ma już ${details.existing_duration_formatted} zajęte. (limit: ${details.limit})`,
-          duration: 7000,
-        });
+          toast.error("Przekroczono limit czasu", {
+            description: `Dzień ${details.day} ma już ${details.existing_duration_formatted} zajęte. (limit: ${details.limit})`,
+            duration: 7000,
+          });
+        } else {
+          toast.error("Błąd", {
+            description: err.message,
+          });
+        }
       } else {
-        const message = err instanceof Error ? err.message : "Nie udało się zaktualizować sesji";
         toast.error("Błąd", {
-          description: message,
+          description: "Nie udało się zaktualizować sesji",
         });
       }
       throw err; // Re-throw so modal knows about the error
@@ -143,25 +154,25 @@ export function EditTaskModalSummary({
       }
 
       setIsAddSessionModalOpen(false);
-    } catch (err: any) {
+    } catch (err) {
       // Check for DailyCapacityExceeded error
-      if (err.code === "DailyCapacityExceeded" && err.details) {
-        const details = err.details as {
-          day: string;
-          existing_duration_formatted: string;
-          new_duration_formatted: string;
-          total_duration_formatted: string;
-          limit: string;
-        };
+      if (err instanceof Error) {
+        const apiErr = err as ApiError;
+        if (apiErr.code === "DailyCapacityExceeded" && apiErr.details) {
+          const details = apiErr.details;
 
-        toast.error("Przekroczono limit czasu", {
-          description: `Dzień ${details.day} ma już ${details.existing_duration_formatted} zajęte. (limit: ${details.limit})`,
-          duration: 7000,
-        });
+          toast.error("Przekroczono limit czasu", {
+            description: `Dzień ${details.day} ma już ${details.existing_duration_formatted} zajęte. (limit: ${details.limit})`,
+            duration: 7000,
+          });
+        } else {
+          toast.error("Błąd", {
+            description: err.message,
+          });
+        }
       } else {
-        const message = err instanceof Error ? err.message : "Nie udało się dodać sesji";
         toast.error("Błąd", {
-          description: message,
+          description: "Nie udało się dodać sesji",
         });
       }
       throw err; // Re-throw so modal knows to stop loading

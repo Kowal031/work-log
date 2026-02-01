@@ -15,12 +15,7 @@ interface SelectOrCreateTaskModalProps {
   selectedDate: Date;
 }
 
-export function SelectOrCreateTaskModal({
-  isOpen,
-  onClose,
-  onTaskSelected,
-  selectedDate,
-}: SelectOrCreateTaskModalProps) {
+export function SelectOrCreateTaskModal({ isOpen, onClose, onTaskSelected }: SelectOrCreateTaskModalProps) {
   const [mode, setMode] = useState<"select" | "create">("select");
   const [activeTasks, setActiveTasks] = useState<TaskResponseDto[]>([]);
   const [isLoadingTasks, setIsLoadingTasks] = useState(false);
@@ -46,7 +41,7 @@ export function SelectOrCreateTaskModal({
       if (tasks.length > 0) {
         setSelectedTaskId(tasks[0].id);
       }
-    } catch (err) {
+    } catch {
       toast.error("Błąd", {
         description: "Nie udało się załadować listy zadań",
       });

@@ -253,9 +253,17 @@ export async function updateTimeEntry(
     throw new Error("TIME_ENTRY_NOT_FOUND");
   }
 
+  // Validate that required fields are present
+  if (!existingEntry.start_time || !existingEntry.end_time) {
+    throw new Error("TIME_ENTRY_INVALID_DATA");
+  }
+
+  // After validation, we know start_time and end_time are present
+  const validatedEntry = existingEntry as { start_time: string; end_time: string };
+
   // Determine final start_time and end_time (use updated values or fall back to existing)
-  const finalStartTime = command.start_time ?? existingEntry.start_time!;
-  const finalEndTime = command.end_time ?? existingEntry.end_time!;
+  const finalStartTime = command.start_time ?? validatedEntry.start_time;
+  const finalEndTime = command.end_time ?? validatedEntry.end_time;
 
   // If we have timezone_offset in command, validate capacity
   // Note: UpdateTimeEntryCommand needs to be extended with timezone_offset
@@ -525,7 +533,7 @@ async function validateDailyTimeCapacity(
     let existingSeconds = 0;
     if (existingEntries) {
       existingSeconds = sumNewEntriesForDay(
-        existingEntries.map((e) => ({ start_time: e.start_time!, end_time: e.end_time! })),
+        existingEntries.map((e) => ({ start_time: e.start_time as string, end_time: e.end_time as string })),
         day,
         timezoneOffsetMinutes
       );
