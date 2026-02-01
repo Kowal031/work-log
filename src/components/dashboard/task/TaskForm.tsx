@@ -4,7 +4,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { useState } from "react";
 
-interface TaskFormProps {
+export interface TaskFormProps {
   onSubmit: (data: { name: string; description?: string }) => void;
   initialData?: { name: string; description?: string | null };
   onCancel: () => void;

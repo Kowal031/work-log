@@ -4,6 +4,10 @@ import userEvent from "@testing-library/user-event";
 import React from "react";
 import { EditTaskModal } from "../EditTaskModal";
 import type { TaskViewModel, TimeEntryResponseDto } from "@/types";
+import type { TaskFormProps } from "../TaskForm";
+import type { SessionHistoryListProps } from "../SessionHistoryList";
+import type { EditSessionModalProps } from "@/components/shared/EditSessionModal";
+import type { DialogProps, DialogContentProps, DialogDescriptionProps, DialogTitleProps } from "@radix-ui/react-dialog";
 
 // Mock external dependencies
 vi.mock("@/lib/api/tasks.api", () => ({
@@ -20,9 +24,18 @@ vi.mock("sonner", () => ({
 
 // Mock child components
 vi.mock("../TaskForm", () => ({
-  TaskForm: ({ onSubmit, onCancel, initialData }: any) => (
+  TaskForm: ({ onSubmit, onCancel, initialData }: TaskFormProps) => (
     <div data-testid="task-form">
-      <button data-testid="task-form-submit" onClick={() => onSubmit(initialData)}>
+      <button
+        data-testid="task-form-submit"
+        onClick={() =>
+          onSubmit(
+            initialData
+              ? { name: initialData.name, description: initialData.description || undefined }
+              : { name: "", description: undefined }
+          )
+        }
+      >
         Submit Task
       </button>
       <button data-testid="task-form-cancel" onClick={onCancel}>
@@ -33,7 +46,7 @@ vi.mock("../TaskForm", () => ({
 }));
 
 vi.mock("../SessionHistoryList", () => ({
-  SessionHistoryList: ({ sessions, onEditSession, highlightedSessionId }: any) => (
+  SessionHistoryList: ({ sessions, onEditSession, highlightedSessionId }: SessionHistoryListProps) => (
     <div data-testid="session-history-list">
       {sessions.map((session: TimeEntryResponseDto) => (
         <div key={session.id} data-testid={`session-${session.id}`}>
@@ -48,7 +61,7 @@ vi.mock("../SessionHistoryList", () => ({
 }));
 
 vi.mock("@/components/shared/EditSessionModal", () => ({
-  EditSessionModal: ({ isOpen, session, onClose, onSave }: any) => {
+  EditSessionModal: ({ isOpen, session, onClose, onSave }: EditSessionModalProps) => {
     const [error, setError] = React.useState<string | null>(null);
     const [isSubmitting, setIsSubmitting] = React.useState(false);
 
@@ -57,7 +70,11 @@ vi.mock("@/components/shared/EditSessionModal", () => ({
       setIsSubmitting(true);
       setError(null);
       try {
-        await onSave(session.id, { start_time: "2024-01-01T10:00:00Z", end_time: "2024-01-01T11:00:00Z" });
+        await onSave(session.id, {
+          start_time: "2024-01-01T10:00:00Z",
+          end_time: "2024-01-01T11:00:00Z",
+          timezone_offset: 60,
+        });
         onClose();
       } catch (err) {
         const message = err instanceof Error ? err.message : "Nie udało się zaktualizować sesji";
@@ -88,19 +105,21 @@ vi.mock("@/components/shared/EditSessionModal", () => ({
 
 // Mock UI components
 vi.mock("@/components/ui/dialog", () => ({
-  Dialog: ({ open, onOpenChange, children }: any) =>
+  Dialog: ({ open, onOpenChange, children }: DialogProps) =>
     open ? (
       <div data-testid="dialog" data-open={open}>
-        <button data-testid="dialog-close" onClick={() => onOpenChange(false)}>
+        <button data-testid="dialog-close" onClick={() => onOpenChange?.(false)}>
           Close Dialog
         </button>
         {children}
       </div>
     ) : null,
-  DialogContent: ({ children }: any) => <div data-testid="dialog-content">{children}</div>,
-  DialogDescription: ({ children }: any) => <div data-testid="dialog-description">{children}</div>,
-  DialogHeader: ({ children }: any) => <div data-testid="dialog-header">{children}</div>,
-  DialogTitle: ({ children }: any) => <div data-testid="dialog-title">{children}</div>,
+  DialogContent: ({ children }: DialogContentProps) => <div data-testid="dialog-content">{children}</div>,
+  DialogDescription: ({ children }: DialogDescriptionProps) => <div data-testid="dialog-description">{children}</div>,
+  DialogHeader: ({ children }: React.HTMLAttributes<HTMLDivElement>) => (
+    <div data-testid="dialog-header">{children}</div>
+  ),
+  DialogTitle: ({ children }: DialogTitleProps) => <div data-testid="dialog-title">{children}</div>,
 }));
 
 vi.mock("@/components/ui/separator", () => ({
@@ -134,7 +153,6 @@ describe("EditTaskModal", () => {
     description: "Test Description",
     status: "active",
     created_at: "2024-01-01T00:00:00Z",
-    updated_at: "2024-01-01T00:00:00Z",
     isBeingEdited: false,
     total_time: "1h 30m",
   };
@@ -145,14 +163,12 @@ describe("EditTaskModal", () => {
       task_id: "task-1",
       start_time: "2024-01-01T09:00:00Z",
       end_time: "2024-01-01T10:30:00Z",
-      updated_at: "2024-01-01T10:30:00Z",
     },
     {
       id: "session-2",
       task_id: "task-1",
       start_time: "2024-01-01T11:00:00Z",
       end_time: null, // Active session
-      updated_at: "2024-01-01T11:00:00Z",
     },
   ];
 
@@ -213,7 +229,12 @@ describe("EditTaskModal", () => {
     });
 
     it("should show loading state while fetching sessions", async () => {
-      mockGetTimeEntries.mockImplementation(() => new Promise(() => {})); // Never resolves
+      mockGetTimeEntries.mockImplementation(
+        () =>
+          new Promise(() => {
+            // Never resolves to simulate loading state
+          })
+      );
 
       render(<EditTaskModal {...defaultProps} />);
 
@@ -314,6 +335,7 @@ describe("EditTaskModal", () => {
         expect(mockUpdateTimeEntry).toHaveBeenCalledWith(mockTask.id, "session-1", {
           start_time: "2024-01-01T10:00:00Z",
           end_time: "2024-01-01T11:00:00Z",
+          timezone_offset: 60,
         });
         expect(mockToastSuccess).toHaveBeenCalledWith("Sukces", {
           description: "Sesja została zaktualizowana",
@@ -371,6 +393,7 @@ describe("EditTaskModal", () => {
         expect(mockUpdateTimeEntry).toHaveBeenCalledWith(mockTask.id, "session-1", {
           start_time: "2024-01-01T10:00:00Z",
           end_time: "2024-01-01T11:00:00Z",
+          timezone_offset: 60,
         });
         expect(mockToastSuccess).toHaveBeenCalledWith("Sukces", {
           description: "Sesja została zaktualizowana",

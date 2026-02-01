@@ -3,7 +3,7 @@ import type { TimeEntryResponseDto } from "@/types";
 import { Pencil } from "lucide-react";
 import { memo, useMemo } from "react";
 
-interface SessionHistoryListProps {
+export interface SessionHistoryListProps {
   sessions: TimeEntryResponseDto[];
   onEditSession: (session: TimeEntryResponseDto) => void;
   highlightedSessionId?: string | null;

@@ -27,7 +27,6 @@ export function useDashboardActions({
   closeCreateModal,
   closeEditModal,
   taskToEdit,
-  closeRecoveryModal,
   closeCapacityExceededModal,
   openEditModal,
   openCapacityExceededModal,

@@ -350,7 +350,7 @@ test.describe("Login Flow - Accessibility", () => {
     await expect(page).toHaveURL("/");
   });
 
-  test("should have visible focus indicators @accessibility", async ({ page }) => {
+  test("should have visible focus indicators @accessibility", async () => {
     // Act
     await loginPage.emailInput.focus();
 
@@ -395,16 +395,17 @@ test.describe("Login Flow - Security & Edge Cases", () => {
     await loginPage.fillPassword(testUsers.validUser.password);
 
     // Act - Click submit multiple times rapidly
-    const clicks = [
-      loginPage.clickSubmit(),
-      loginPage.submitButton.click().catch(() => {}),
-      loginPage.submitButton.click().catch(() => {}),
+    const clickPromises = [
+      loginPage.submitButton.click(),
+      loginPage.submitButton.click().catch(() => {
+        /* ignore */
+      }),
+      loginPage.submitButton.click().catch(() => {
+        /* ignore */
+      }),
     ];
 
-    await Promise.all(clicks);
-
-    // Wait for login to complete and navigation to finish
-    await loginPage.page.waitForTimeout(2000);
+    await Promise.allSettled(clickPromises);
 
     // Assert - Should still work correctly (button disabled prevents multiple submits)
     await expect(loginPage.page).toHaveURL("/");

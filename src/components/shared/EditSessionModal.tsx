@@ -16,7 +16,7 @@ import { cn } from "@/lib/utils";
 import { CalendarIcon } from "lucide-react";
 import { useEffect, useState } from "react";
 
-interface EditSessionModalProps {
+export interface EditSessionModalProps {
   isOpen: boolean;
   session: TimeEntryResponseDto | null;
   taskStatus: TaskStatus;
