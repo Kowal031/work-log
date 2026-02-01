@@ -28,12 +28,11 @@ export default function LogoutButton({ variant = "ghost", size = "default", clas
         throw new Error(errorData.error || "Logout failed");
       }
 
-      // Redirect is handled by the API endpoint
-      window.location.href = "/login";
+      // Success - redirect will happen in finally
     } catch (err) {
       console.error("Logout error:", err);
-      setIsLoading(false);
-      // Still redirect on error to ensure user is logged out
+    } finally {
+      // Always redirect after logout attempt
       window.location.href = "/login";
     }
   };

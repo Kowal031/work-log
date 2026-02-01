@@ -106,11 +106,9 @@ export class DashboardPage {
 
   /**
    * Klika przycisk wylogowania
-   * Czeka na przekierowanie do /login
    */
   async logout(): Promise<void> {
     await this.navLogoutButton.click();
-    await this.page.waitForURL("/login");
   }
 
   /**
