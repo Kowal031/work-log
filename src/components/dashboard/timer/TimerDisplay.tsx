@@ -11,9 +11,9 @@ export const TimerDisplay = memo(function TimerDisplay({ startTime, isPaused = f
 
   useEffect(() => {
     const calculateDuration = () => {
-      const start = new Date(startTime);
-      const now = pausedAt ? new Date(pausedAt) : new Date();
-      const diff = Math.floor((now.getTime() - start.getTime()) / 1000);
+      const startTimeMs = new Date(startTime).getTime();
+      const nowMs = pausedAt || Date.now();
+      const diff = Math.floor((nowMs - startTimeMs) / 1000);
 
       const hours = Math.floor(diff / 3600);
       const minutes = Math.floor((diff % 3600) / 60);
