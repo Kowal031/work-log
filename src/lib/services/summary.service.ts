@@ -89,7 +89,7 @@ export async function getDailySummary(
       };
     }
 
-    // Need to get task status separately
+    // Need to get task status and entries count separately
     const taskIds = (summaryData as PostgresSummaryRow[]).map((row) => row.task_id);
     const { data: tasksData, error: tasksError } = await supabase.from("tasks").select("id, status").in("id", taskIds);
 
@@ -104,6 +104,28 @@ export async function getDailySummary(
       }
     }
 
+    // Get entries count for each task on the date
+    const { data: entriesCountData, error: entriesError } = await supabase
+      .from("time_entries")
+      .select("task_id")
+      .eq("user_id", userId)
+      .gte("start_time", `${fromDate}T00:00:00.000Z`)
+      .lt(
+        "start_time",
+        `${new Date(new Date(fromDate).getTime() + 24 * 60 * 60 * 1000).toISOString().split("T")[0]}T00:00:00.000Z`
+      );
+
+    if (entriesError) {
+      throw new Error(`Failed to fetch entries count: ${entriesError.message}`);
+    }
+
+    const entriesCountMap = new Map<string, number>();
+    if (entriesCountData) {
+      for (const entry of entriesCountData) {
+        entriesCountMap.set(entry.task_id, (entriesCountMap.get(entry.task_id) || 0) + 1);
+      }
+    }
+
     // Convert interval to seconds and build task summaries
     const tasks: TaskSummaryDto[] = (summaryData as PostgresSummaryRow[]).map((row) => {
       const durationSeconds = parsePostgresInterval(row.total_duration);
@@ -113,7 +135,7 @@ export async function getDailySummary(
         task_status: taskStatusMap.get(row.task_id) || "active",
         duration_seconds: durationSeconds,
         duration_formatted: secondsToHMS(durationSeconds),
-        entries_count: 1, // PostgreSQL function doesn't return count, approximate
+        entries_count: entriesCountMap.get(row.task_id) || 0,
       };
     });
 

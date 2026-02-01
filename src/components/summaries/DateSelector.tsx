@@ -23,10 +23,6 @@ export function DateSelector({ selectedDate, onDateChange, disabled }: DateSelec
     onDateChange(nextDay);
   };
 
-  const handleToday = () => {
-    onDateChange(new Date());
-  };
-
   const formatDate = (date: Date) => {
     return new Intl.DateTimeFormat("pl-PL", {
       year: "numeric",
@@ -70,10 +66,6 @@ export function DateSelector({ selectedDate, onDateChange, disabled }: DateSelec
           <ChevronRight className="h-4 w-4" />
         </Button>
       </div>
-
-      <Button variant="outline" onClick={handleToday} disabled={disabled}>
-        Dziś
-      </Button>
     </div>
   );
 }

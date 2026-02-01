@@ -69,7 +69,10 @@ export const SessionHistoryList = memo(function SessionHistoryList({
   }
 
   return (
-    <div className="space-y-2">
+    <div
+      className="space-y-2 max-h-[20rem] overflow-y-auto"
+      style={{ scrollbarWidth: "thin", scrollbarColor: "rgb(203 213 225) transparent" }}
+    >
       {sessions.map((session) => {
         const isHighlighted = highlightedSessionId === session.id;
         return (

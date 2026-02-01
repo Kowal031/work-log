@@ -41,7 +41,11 @@ export function SummaryTaskList({ tasks, isLoading, selectedDate, onTaskClick }:
       style={{ scrollbarWidth: "thin", scrollbarColor: "rgb(203 213 225) transparent" }}
     >
       {tasks.map((task) => (
-        <div key={task.task_id} className="min-h-[10rem] max-h-[17.5rem]">
+        <div
+          key={task.task_id}
+          className="min-h-[10rem] max-h-[17.5rem] overflow-y-auto"
+          style={{ scrollbarWidth: "thin", scrollbarColor: "rgb(203 213 225) transparent" }}
+        >
           <SummaryTaskItem task={task} selectedDate={selectedDate} onTaskClick={onTaskClick} />
         </div>
       ))}

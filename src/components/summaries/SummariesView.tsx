@@ -7,6 +7,7 @@ import { AddTimeButton } from "./AddTimeButton";
 import { SelectOrCreateTaskModal } from "./SelectOrCreateTaskModal";
 import { useDailySummary } from "./hooks/useDailySummary";
 import type { TaskStatus } from "../../types";
+import { Button } from "../ui/button";
 
 export default function SummariesView() {
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
@@ -57,6 +58,10 @@ export default function SummariesView() {
     refetch();
   };
 
+  const handleToday = () => {
+    setSelectedDate(new Date());
+  };
+
   if (error) {
     return (
       <div className="container mx-auto px-4 py-8">
@@ -82,8 +87,13 @@ export default function SummariesView() {
           <h1 className="text-3xl font-bold">Podsumowanie</h1>
         </div>
 
-        <div className="flex items-center justify-between gap-4">
-          <DateSelector selectedDate={selectedDate} onDateChange={setSelectedDate} disabled={isLoading} />
+        <div className="flex flex-col gap-4 flex-row items-center justify-between flex-wrap">
+          <div className="flex items-center gap-4 flex-wrap">
+            <DateSelector selectedDate={selectedDate} onDateChange={setSelectedDate} disabled={isLoading} />
+            <Button variant="outline" onClick={handleToday} disabled={isLoading}>
+              Dziś
+            </Button>
+          </div>
           <AddTimeButton onClick={handleAddTimeClick} disabled={isLoading} />
         </div>
 

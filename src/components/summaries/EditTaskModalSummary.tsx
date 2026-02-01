@@ -198,7 +198,7 @@ export function EditTaskModalSummary({
   return (
     <>
       <Dialog open={isOpen} onOpenChange={onClose}>
-        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto sm: max-h-[75vh]">
           <DialogHeader>
             <DialogTitle style={{ wordBreak: "break-all", paddingRight: "0.5rem" }}>{taskName}</DialogTitle>
             <DialogDescription>Historia sesji czasowych dla dnia: {formattedDate}</DialogDescription>
@@ -241,6 +241,7 @@ export function EditTaskModalSummary({
       <EditSessionModal
         isOpen={isEditSessionModalOpen}
         session={sessionToEdit}
+        taskStatus={taskStatus}
         onClose={() => {
           setIsEditSessionModalOpen(false);
           setSessionToEdit(null);
@@ -253,6 +254,7 @@ export function EditTaskModalSummary({
         isOpen={isAddSessionModalOpen}
         onClose={() => setIsAddSessionModalOpen(false)}
         taskName={taskName}
+        taskStatus={taskStatus}
         initialDate={selectedDate}
         onSave={handleAddNewSession}
       />

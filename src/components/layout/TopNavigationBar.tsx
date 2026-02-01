@@ -16,7 +16,7 @@ export function TopNavigationBar({ currentPath, userEmail }: TopNavigationBarPro
 
   return (
     <>
-      <nav className="border-b bg-background sticky top-0 z-40">
+      <nav className="border-b bg-background sticky top-0 z-100">
         <div className="container mx-auto px-4">
           <div className="flex h-16 items-center justify-between">
             {/* Logo */}

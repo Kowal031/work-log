@@ -90,7 +90,7 @@ export function EditTaskModal({ isOpen, onClose, onSave, task, hasActiveTimer }:
   return (
     <>
       <Dialog open={isOpen} onOpenChange={onClose}>
-        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto sm: max-h-[75vh]">
           <DialogHeader>
             <DialogTitle>Edytuj zadanie</DialogTitle>
             <DialogDescription>
