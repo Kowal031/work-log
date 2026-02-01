@@ -445,6 +445,8 @@ test.describe("Login Flow - Integration with Dashboard", () => {
 
     // Act
     const dashboardPage = new DashboardPage(page);
+    await expect(page).toHaveURL("/");
+
     await dashboardPage.logout();
 
     // Assert

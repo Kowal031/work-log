@@ -148,6 +148,7 @@ export function EditTaskModal({ isOpen, onClose, onSave, task, hasActiveTimer }:
           setSessionToEdit(null);
         }}
         onSave={handleSaveSession}
+        taskStatus={task.status}
       />
     </>
   );
