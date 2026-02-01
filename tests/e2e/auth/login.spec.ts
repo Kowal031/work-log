@@ -208,12 +208,15 @@ test.describe("Login Flow - UI/UX States", () => {
   });
 
   test("should disable form fields during login @ui", async () => {
-    // Arrange
+    // ArrangeS
     await loginPage.fillEmail(testUsers.validUser.email);
     await loginPage.fillPassword(testUsers.validUser.password);
 
     // Act
     const submitPromise = loginPage.clickSubmit();
+
+    // Wait for loading state to be set
+    await loginPage.page.waitForTimeout(100);
 
     // Assert - Fields should be disabled during loading
     await expect(loginPage.emailInput).toBeDisabled();
@@ -454,7 +457,8 @@ test.describe("Login Flow - Integration with Dashboard", () => {
     await dashboardPage.logout();
 
     // Assert
-    await expect(page).toHaveURL("/login");
+    await page.waitForLoadState("networkidle");
+    await expect(page).toHaveURL("/login", { timeout: 10000 });
   });
 
   test("should maintain session after page refresh @integration", async ({ page }) => {

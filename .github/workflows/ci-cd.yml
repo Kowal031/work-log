@@ -62,6 +62,7 @@ jobs:
     needs: lint
     environment: integration
     env:
+      CI: true
       SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
       SUPABASE_PUBLIC_KEY: ${{ secrets.SUPABASE_PUBLIC_KEY }}
       E2E_USERNAME_ID: ${{ secrets.E2E_USERNAME_ID }}

@@ -8,12 +8,12 @@ import { DashboardPage } from "./page-objects/DashboardPage";
  */
 export const testUsers = {
   validUser: {
-    email: "test@op.pl",
-    password: "test",
+    email: process.env.E2E_USERNAME || "test@op.pl",
+    password: process.env.E2E_PASSWORD || "test",
   },
 
   invalidCredentials: {
-    email: "test@op.pl",
+    email: process.env.E2E_USERNAME || "test@op.pl",
     password: "WrongPassword123!",
   },
 
