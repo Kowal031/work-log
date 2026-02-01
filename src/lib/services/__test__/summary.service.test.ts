@@ -76,6 +76,14 @@ describe("summary.service", () => {
           data: mockTasksData,
           error: null,
         }),
+        eq: vi.fn(() => ({
+          gte: vi.fn(() => ({
+            lt: vi.fn().mockResolvedValue({
+              data: [], // Mock entries count data
+              error: null,
+            }),
+          })),
+        })),
       });
 
       // Act
@@ -125,6 +133,14 @@ describe("summary.service", () => {
           data: mockTasksData,
           error: null,
         }),
+        eq: vi.fn(() => ({
+          gte: vi.fn(() => ({
+            lt: vi.fn().mockResolvedValue({
+              data: [], // Mock entries count data
+              error: null,
+            }),
+          })),
+        })),
       });
 
       // Act
@@ -254,6 +270,14 @@ describe("summary.service", () => {
           data: [], // No matching tasks
           error: null,
         }),
+        eq: vi.fn(() => ({
+          gte: vi.fn(() => ({
+            lt: vi.fn().mockResolvedValue({
+              data: [], // Mock entries count data
+              error: null,
+            }),
+          })),
+        })),
       });
 
       // Act
@@ -304,6 +328,14 @@ describe("summary.service", () => {
           data: mockTasksData,
           error: null,
         }),
+        eq: vi.fn(() => ({
+          gte: vi.fn(() => ({
+            lt: vi.fn().mockResolvedValue({
+              data: [], // Mock entries count data
+              error: null,
+            }),
+          })),
+        })),
       });
 
       // Act
@@ -706,6 +738,14 @@ describe("summary.service", () => {
           data: mockTasksData,
           error: null,
         }),
+        eq: vi.fn(() => ({
+          gte: vi.fn(() => ({
+            lt: vi.fn().mockResolvedValue({
+              data: [], // No entries for this test
+              error: null,
+            }),
+          })),
+        })),
       });
 
       // Act
@@ -742,6 +782,14 @@ describe("summary.service", () => {
           data: mockTasksData,
           error: null,
         }),
+        eq: vi.fn(() => ({
+          gte: vi.fn(() => ({
+            lt: vi.fn().mockResolvedValue({
+              data: [], // No entries for this test
+              error: null,
+            }),
+          })),
+        })),
       });
 
       // Act

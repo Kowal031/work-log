@@ -403,6 +403,9 @@ test.describe("Login Flow - Security & Edge Cases", () => {
 
     await Promise.all(clicks);
 
+    // Wait for login to complete and navigation to finish
+    await loginPage.page.waitForTimeout(2000);
+
     // Assert - Should still work correctly (button disabled prevents multiple submits)
     await expect(loginPage.page).toHaveURL("/");
   });
@@ -459,6 +462,7 @@ test.describe("Login Flow - Integration with Dashboard", () => {
     await loginPage.goto();
     await loginPage.login(testUsers.validUser.email, testUsers.validUser.password);
 
+    await page.waitForTimeout(1000);
     // Ensure login is complete and redirected to dashboard
     await expect(page).toHaveURL("/");
 
