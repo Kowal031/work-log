@@ -11,13 +11,7 @@ export default defineConfig({
     coverage: {
       provider: "v8",
       reporter: ["text", "json", "html"],
-      exclude: [
-        "node_modules/",
-        "tests/",
-        "**/*.config.{js,ts}",
-        "**/dist/**",
-        "**/.astro/**",
-      ],
+      exclude: ["node_modules/", "tests/", "**/*.config.{js,ts}", "**/dist/**", "**/.astro/**"],
     },
     include: ["**/*.{test,spec}.{js,mjs,cjs,ts,mts,cts,jsx,tsx}"],
     exclude: ["node_modules", "dist", ".astro", "tests/e2e"],

@@ -8,6 +8,7 @@ A simple and effective application for monitoring time spent on various tasks.
 - [Tech Stack](#tech-stack)
 - [Getting Started Locally](#getting-started-locally)
 - [Available Scripts](#available-scripts)
+- [CI/CD Pipeline](#cicd-pipeline)
 - [Project Scope](#project-scope)
 - [Project Status](#project-status)
 - [License](#license)
@@ -89,6 +90,50 @@ In the project directory, you can run the following scripts:
 - `npm run lint`: Lints the codebase using ESLint.
 - `npm run lint:fix`: Fixes linting errors automatically.
 - `npm run format`: Formats the code using Prettier.
+
+## CI/CD Pipeline
+
+This project uses GitHub Actions for continuous integration and deployment. Every pull request triggers an automated pipeline that ensures code quality and functionality.
+
+### CI CD Request Workflow
+
+The PR workflow consists of three stages:
+
+1. **Linting** - Code quality checks
+2. **Testing** (parallel):
+   - Unit Tests with coverage
+   - E2E Tests with Playwright
+3. **Status Comment** - Automated PR comment with results
+
+### Running Tests Locally
+
+Before pushing your changes, run tests locally:
+
+```sh
+# Run linter
+npm run lint
+
+# Run unit tests
+npm run test
+
+# Run unit tests with coverage
+npm run test:coverage
+
+# Run E2E tests
+npm run test:e2e
+```
+
+### Setting Up CI Secrets
+
+For E2E tests to run in CI, configure these secrets in your GitHub repository:
+
+- `SUPABASE_URL` - Your Supabase project URL
+- `SUPABASE_PUBLIC_KEY` - Supabase anonymous/public key
+- `E2E_USERNAME_ID` - Test user ID
+- `E2E_USERNAME` - Test user email
+- `E2E_PASSWORD` - Test user password
+
+For detailed CI/CD documentation, see [.github/CI.md](.github/CI.md).
 
 ## Project Scope
 
